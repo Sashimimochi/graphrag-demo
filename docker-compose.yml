@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    command: ["streamlit", "run", "app.py"]
+    volumes:
+      - .:/app
+    tty: true
+    environment:
+      - TZ=Asia/Tokyo
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    ports:
+      - "8501:8501"
+  neo4j:
+    image: neo4j:5.26.0
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./neo4j/data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
