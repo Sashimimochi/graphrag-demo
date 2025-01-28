@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from lightrag import LightRAG, QueryParam
 from lightrag.utils import EmbeddingFunc
 from lightrag.llm import openai_embedding, openai_complete_if_cache
-from utils.graph_visualize import visualize_graphml
+from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
 from neo4j import GraphDatabase
 
 load_dotenv()
@@ -121,7 +121,7 @@ def main():
         )
         st.session_state.rag = rag
 
-    mode = st.selectbox("Select Search Mode", ["naive", "local", "global", "hybrid", "mix"], key="mode", help="- `naive`: \n- `local`: 人物相関など特定の関係性について質問をする\n- `global`: 文章全体にまたがる抽象的な質問をする\n- `hybrid`: `local`と`global`の両方を混ぜたもの\n- `mix`: 知識グラフとベクトル検索を組み合わせて検索する")
+    mode = st.selectbox("Select Search Mode", ["naive", "local", "global", "hybrid", "mix"], key="mode", help="- `naive`: 単純な類似検索\n- `local`: 人物相関など特定の関係性について質問をする\n- `global`: 文章全体にまたがる抽象的な質問をする\n- `hybrid`: `local`と`global`の両方を混ぜたもの\n- `mix`: 知識グラフとベクトル検索を組み合わせて検索する")
     if st.button("Create Index", help="初めて使用するデータの場合は、質問の前にインデックスを作成してください。"):
         with st.spinner("Creating index..."):
             make_index(filename)
@@ -140,6 +140,8 @@ def main():
                 visualize_graphml(filename, filepath)
             with open(filepath, "r") as f:
                 components.html(f.read(), height=500)
+            df = show_hierarchy_graph(filename)
+            st.dataframe(df)
 
     # initialize chat history
     if "messages" not in st.session_state:

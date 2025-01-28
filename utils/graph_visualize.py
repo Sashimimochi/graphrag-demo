@@ -3,7 +3,7 @@ import os
 import networkx as nx
 import pandas as pd
 from pyvis.network import Network
-#from graphrag.index.operations.cluster_graph import run_layout
+from graphrag.index.operations.cluster_graph import cluster_graph
 
 
 def create_simple_html(dataset):
@@ -20,7 +20,9 @@ def create_simple_html(dataset):
   # Save and display the network
   net.show(f'./visualize/knowledge_graph_{dataset}.html')
 
-"""
+from yfiles_jupyter_graphs import GraphWidget
+import streamlit as st
+
 def show_hierarchy_graph(dataset):
   # クラスタリングの設定
   strategy = {
@@ -36,7 +38,7 @@ def show_hierarchy_graph(dataset):
   G = nx.read_graphml(f'./{dataset}/graph_chunk_entity_relation.graphml')
 
   # クラスタリングを実行
-  communities = run_layout(strategy, G)
+  communities = cluster_graph(G, strategy)
 
   # 結果を表示
   print("Detected communities:")
@@ -44,10 +46,8 @@ def show_hierarchy_graph(dataset):
     communities, columns=pd.Index(["level", "community", "parent", "title"])
   ).explode("title")
   base_communities["community"] = base_communities["community"].astype(int)
-  print(base_communities)
-  return base_communities
-"""
 
+  return base_communities
 
 # load GraphML file and transfer to JSON
 def graphml_to_json(graphml_file):

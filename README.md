@@ -120,3 +120,16 @@ Import progress (estimated)
 Your data was successfully pushed to Aura and is now running.
 It is safe to delete the dump file now: /dumps/neo4j
 ```
+
+## Jupyterを使って可視化する場合
+
+[yFiles][https://github.com/yWorks/yfiles-jupyter-graphs]を使って可視化したい場合は、Jupyter Labを立ち上げる必要がある。
+コードは[GraphRAG](https://github.com/microsoft/graphrag/blob/v1.0.1/examples_notebooks/community_contrib/yfiles-jupyter-graphs/graph-visualization.ipynb)のサンプルコードを参考にしている。
+
+以下のコマンドを実行して、Jupyter Labを起動する。
+
+```bash
+docker-compose exec app jupyter lab --allow-root --ip 0.0.0.0
+```
+
+あとはお好みの`dataset`を指定して上から順に実行する。

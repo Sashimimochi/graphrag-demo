@@ -12,3 +12,12 @@ down:
 
 clean:
 	docker-compose down --rmi all --volumes --remove-orphans
+
+allclean:
+	@make clean
+	rm lightrag.log
+	rm -rf data/
+	rm -rf visualize/
+	rm -rf dickens/
+	rm -rf lib/
+	rm -rf neo4j/

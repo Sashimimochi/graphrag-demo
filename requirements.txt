@@ -49,7 +49,7 @@ google-auth==2.37.0
 google-auth-httplib2==0.2.0
 google-generativeai==0.8.3
 googleapis-common-protos==1.66.0
-graphrag
+graphrag==1.0.1
 graspologic==3.4.1
 graspologic-native==1.2.1
 grpcio==1.68.1
@@ -174,3 +174,5 @@ wrapt==1.17.0
 yarl==1.18.3
 streamlit==1.41.1
 neo4j==5.27.0
+jupyterlab==4.3.4
+yfiles_jupyter_graphs==1.10.1
