@@ -161,7 +161,7 @@ tokenizers==0.21.0
 torch==2.5.1
 tqdm==4.67.1
 traitlets==5.14.3
-transformers==4.47.1
+transformers==4.48.0
 triton==3.1.0
 typer
 typing_extensions==4.12.2
