@@ -2,6 +2,8 @@
 
 GraphRAGを試すサンプルコード
 
+本リポジトリは[lightrag](https://github.com/HKUDS/LightRAG)をベースに実装しています。
+
 ## Settings
 
 ### 環境変数の設定
@@ -123,7 +125,7 @@ It is safe to delete the dump file now: /dumps/neo4j
 
 ## Jupyterを使って可視化する場合
 
-[yFiles][https://github.com/yWorks/yfiles-jupyter-graphs]を使って可視化したい場合は、Jupyter Labを立ち上げる必要がある。
+[yFiles](https://github.com/yWorks/yfiles-jupyter-graphs)を使って可視化したい場合は、Jupyter Labを立ち上げる必要がある。
 コードは[GraphRAG](https://github.com/microsoft/graphrag/blob/v1.0.1/examples_notebooks/community_contrib/yfiles-jupyter-graphs/graph-visualization.ipynb)のサンプルコードを参考にしている。
 
 以下のコマンドを実行して、Jupyter Labを起動する。
