@@ -5,12 +5,15 @@ setup:
 
 up:
 	docker-compose up -d
+	open http://localhost:8501
 
 down:
 	docker-compose down --volumes
 	rm -rf sample/ neo4j/*
+	docker system prune -f
 
 clean:
+	@make down
 	docker-compose down --rmi all --volumes --remove-orphans
 
 allclean:

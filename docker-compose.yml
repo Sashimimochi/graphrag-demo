@@ -13,6 +13,8 @@ services:
     ports:
       - "8501:8501"
       - "8888:8888"
+    networks:
+      - graphrag
   neo4j:
     image: neo4j:5.26.0
     container_name: neo4j
@@ -23,3 +25,9 @@ services:
       - ./neo4j/data:/data
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+    networks:
+      - graphrag
+
+networks:
+  graphrag:
+    driver: bridge
