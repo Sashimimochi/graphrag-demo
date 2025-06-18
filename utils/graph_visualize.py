@@ -18,7 +18,7 @@ def create_simple_html(dataset):
   net.from_nx(G)
 
   # Save and display the network
-  net.show(f'./visualize/knowledge_graph_{dataset}.html')
+  net.show(f'./visualize/knowledge_graph_{dataset}_simple.html')
 
 from yfiles_jupyter_graphs import GraphWidget
 import streamlit as st
@@ -139,7 +139,7 @@ def save_as_html(html_path, graph_json):
     <script>
         [GRPH DATA];
         const graphData = graphJson;
-        
+
         const svg = d3.select("svg"),
             width = window.innerWidth,
             height = window.innerHeight;
@@ -282,7 +282,7 @@ def save_as_html(html_path, graph_json):
 
 def create_json(json_data):
     json_data = "var graphJson = " + json_data.replace('\\"', '').replace("'", "\\'").replace("\n", "")
-    
+
     return json_data
 
 # main function
@@ -292,5 +292,5 @@ def visualize_graphml(dataset, html_path):
     html_dir = os.path.dirname(html_path)
     if not os.path.exists(html_dir):
         os.makedirs(html_dir)
-    
+
     save_as_html(html_path, create_json(json_data))
