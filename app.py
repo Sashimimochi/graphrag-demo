@@ -1,11 +1,13 @@
 import os
+import asyncio
 import numpy as np
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
+from tenacity import retry, stop_after_attempt, wait_exponential
 from lightrag import LightRAG, QueryParam
 from lightrag.utils import EmbeddingFunc
-from lightrag.llm import openai_embedding, openai_complete_if_cache
+from lightrag.llm.openai import openai_embed, openai_complete_if_cache
 from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
 from neo4j import GraphDatabase
 
@@ -15,7 +17,13 @@ load_dotenv()
 # 定数の設定
 DATA_DIR = "./data"
 API_KEY = os.getenv("API_KEY")
-BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+BASE_URL = os.getenv("API_HOST", "https://generativelanguage.googleapis.com/v1beta/openai")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", 4096))
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-004")
+EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", 768))
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
+MAX_ASYNC = int(os.getenv("MAX_ASYNC", 1))
 
 # Streamlitのページ設定
 def configure_page():
@@ -37,22 +45,26 @@ def initialize_session_state():
         st.session_state.conversation = []
 
 # LLMモデル関数の定義
+semaphore = asyncio.Semaphore(MAX_ASYNC)
+
+#@retry(wait=wait_exponential(multiplier=1, min=60, max=180), stop=stop_after_attempt(5))
 async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs) -> str:
-    return await openai_complete_if_cache(
-        "gemini-1.5-flash",
-        prompt,
-        system_prompt=system_prompt,
-        history_messages=history_messages,
-        api_key=API_KEY,
-        base_url=BASE_URL,
-        **kwargs
-    )
+    async with semaphore:
+        return await openai_complete_if_cache(
+            LLM_MODEL,
+            prompt,
+            system_prompt=system_prompt,
+            history_messages=history_messages,
+            api_key=API_KEY,
+            base_url=BASE_URL,
+            **kwargs
+        )
 
 # 埋め込み関数の定義
 async def embedding_func(texts: list[str]) -> np.ndarray:
-    return await openai_embedding(
+    return await openai_embed(
         texts,
-        model="text-embedding-004",
+        model=EMBEDDING_MODEL,
         api_key=API_KEY,
         base_url=BASE_URL,
     )
@@ -60,7 +72,8 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
 # インデックス作成関数の定義
 def make_index(filepath):
     with open(os.path.join(DATA_DIR, f"{filepath}.txt")) as f:
-        st.session_state.rag.insert(f.read())
+        content = f.read()
+        st.session_state.rag.insert(content)
     st.success("インデックスの作成が完了しました。")
 
 # 検索関数の定義
@@ -117,10 +130,12 @@ def initialize_rag(working_dir, language, graph_storage):
         rag = LightRAG(
             working_dir=working_dir,
             llm_model_func=llm_model_func,
-            llm_model_max_async=1,
+            llm_model_max_async=MAX_ASYNC,
+            embedding_func_max_async=MAX_ASYNC,
+            chunk_token_size=CHUNK_SIZE,
             embedding_func=EmbeddingFunc(
-                embedding_dim=768,
-                max_token_size=4096,
+                embedding_dim=EMBEDDING_DIM,
+                max_token_size=MAX_TOKENS,
                 func=embedding_func
             ),
             graph_storage=graph_storage,
