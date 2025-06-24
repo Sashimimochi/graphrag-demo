@@ -12,7 +12,6 @@ jupyter:
 	docker-compose exec app jupyter lab --allow-root --ip 0.0.0.0
 
 server:
-#	docker-compose exec app lightrag-server --working-dir ./rag_storage  --input-dir ./inputs
 	open http://localhost:9621
 
 down:
