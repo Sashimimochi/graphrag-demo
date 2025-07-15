@@ -1,29 +1,17 @@
 import os
 import asyncio
-import numpy as np
+import nest_asyncio
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
-from tenacity import retry, stop_after_attempt, wait_exponential
-from lightrag import LightRAG, QueryParam
-from lightrag.utils import EmbeddingFunc
-from lightrag.llm.openai import openai_embed, openai_complete_if_cache
 from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
-from neo4j import GraphDatabase
+from utils.rag import make_index, search
+from utils.common import select_dataset, select_language, select_graph_storage, check_storage, select_search_mode
+
+nest_asyncio.apply()
 
 # 環境変数をロード
 load_dotenv()
-
-# 定数の設定
-DATA_DIR = "./data"
-API_KEY = os.getenv("API_KEY")
-BASE_URL = os.getenv("API_HOST", "https://generativelanguage.googleapis.com/v1beta/openai")
-LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", 4096))
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-004")
-EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", 768))
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
-MAX_ASYNC = int(os.getenv("MAX_ASYNC", 1))
 
 # Streamlitのページ設定
 def configure_page():
@@ -43,117 +31,10 @@ def configure_page():
 def initialize_session_state():
     if "conversation" not in st.session_state:
         st.session_state.conversation = []
-
-# LLMモデル関数の定義
-semaphore = asyncio.Semaphore(MAX_ASYNC)
-
-#@retry(wait=wait_exponential(multiplier=1, min=60, max=180), stop=stop_after_attempt(5))
-async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs) -> str:
-    async with semaphore:
-        return await openai_complete_if_cache(
-            LLM_MODEL,
-            prompt,
-            system_prompt=system_prompt,
-            history_messages=history_messages,
-            api_key=API_KEY,
-            base_url=BASE_URL,
-            **kwargs
-        )
-
-# 埋め込み関数の定義
-async def embedding_func(texts: list[str]) -> np.ndarray:
-    return await openai_embed(
-        texts,
-        model=EMBEDDING_MODEL,
-        api_key=API_KEY,
-        base_url=BASE_URL,
-    )
-
-# インデックス作成関数の定義
-def make_index(filepath):
-    with open(os.path.join(DATA_DIR, f"{filepath}.txt")) as f:
-        content = f.read()
-        st.session_state.rag.insert(content)
-    st.success("インデックスの作成が完了しました。")
-
-# 検索関数の定義
-def search(mode, query="この文章を読むとどのような知見が得られるか簡潔にまとめてください。"):
-    """
-    Perform mix search (Knowledge Graph + Vector Retrieval)
-    Mix mode combines knowledge graph and vector search:
-    - Uses both structured (KG) and unstructured (vector) information
-    - Provides comprehensive answers by analyzing relationships and context
-    - Supports image content through HTML img tags
-    - Allows control over retrieval depth via top_k parameter
-    """
-    msg = st.session_state.rag.query(query, param=QueryParam(mode=mode))
-    print("="*100)
-    print(f"\nquestion: {query}")
-    print(f"[Mode: {mode} Search]")
-    print("-"*30)
-    print("")
-    print(msg)
-    return msg
-
-# データセットの選択
-def select_dataset():
-    return st.text_input(
-        "Select Data",
-        help="dataディレクトリに事前にテキスト形式で同名のインデックス用ファイルを保存しておく必要があります。サンプルデータを使用する場合は、`dickens`を選択してください。",
-        placeholder="dickens"
-    )
-
-# 言語の選択
-def select_language():
-    return st.selectbox(
-        "Select Language",
-        ["Japanese", "English"],
-        help="日本語のデータセット/質問をする場合は`Japanese`を選択してください。"
-    )
-
-# グラフストレージの選択
-def select_graph_storage():
-    return "Neo4JStorage" if os.getenv("NEO4J_URI") else "NetworkXStorage"
-
-# Neo4jストレージの接続確認
-def verify_neo4j_connection():
-    neo4j_uri = os.getenv('NEO4J_URI')
-    username = os.getenv('NEO4J_USERNAME')
-    password = os.getenv('NEO4J_PASSWORD')
-    with GraphDatabase.driver(neo4j_uri, auth=(username, password)) as driver:
-        driver.verify_connectivity()
-        st.success("Successfully access neo4j")
-
-# RAGオブジェクトの初期化
-def initialize_rag(working_dir, language, graph_storage):
-    if "rag" not in st.session_state:
-        rag = LightRAG(
-            working_dir=working_dir,
-            llm_model_func=llm_model_func,
-            llm_model_max_async=MAX_ASYNC,
-            embedding_func_max_async=MAX_ASYNC,
-            chunk_token_size=CHUNK_SIZE,
-            embedding_func=EmbeddingFunc(
-                embedding_dim=EMBEDDING_DIM,
-                max_token_size=MAX_TOKENS,
-                func=embedding_func
-            ),
-            graph_storage=graph_storage,
-            addon_params={
-                "language": language,
-                "entity_types": ["organization", "person", "geo", "event", "category", "product"],
-            },
-        )
-        st.session_state.rag = rag
-
-# 検索モードの選択
-def select_search_mode():
-    return st.selectbox(
-        "Select Search Mode",
-        ["naive", "local", "global", "hybrid", "mix"],
-        key="mode",
-        help="- `naive`: 単純な類似検索\n- `local`: 人物相関など特定の関係性について質問をする\n- `global`: 文章全体にまたがる抽象的な質問をする\n- `hybrid`: `local`と`global`の両方を混ぜたもの\n- `mix`: 知識グラフとベクトル検索を組み合わせて検索する"
-    )
+    if "language" not in st.session_state:
+        st.session_state.language = ""
+    if "working_dir" not in st.session_state:
+        st.session_state.working_dir = ""
 
 # 知識グラフの表示
 def display_knowledge_graph(graph_storage, filename):
@@ -199,13 +80,13 @@ def handle_user_input(mode):
         with st.chat_message("assistant"):
             with st.spinner("Assistant is thinking..."):
                 placeholder = st.empty()
-                msg = search(mode, prompt)
+                msg = asyncio.run(search(mode, query=prompt))
                 placeholder.markdown(msg)
                 # アシスタントメッセージをチャット履歴に追加
                 st.session_state.messages.append({"role": "assistant", "content": msg})
 
 # メイン関数の定義
-def main():
+async def main():
     configure_page()
     initialize_session_state()
 
@@ -213,32 +94,21 @@ def main():
     st.write("GraphRAGの威力を体感できるデモアプリです。")
 
     DATASET = select_dataset()
-    WORKING_DIR = DATASET
-
-    if not WORKING_DIR:
+    st.session_state.working_dir = DATASET
+    filename = DATASET
+    if not st.session_state.working_dir:
         return
 
-    LANGUAGE = select_language()
-    filename = DATASET
-
-    if not os.path.exists(WORKING_DIR):
-        os.mkdir(WORKING_DIR)
-        st.warning(f"`data`ディレクトリ配下に`{filename}.txt`を配置し、インデックスを作成してください。")
+    st.session_state.language = select_language()
 
     graph_storage = select_graph_storage()
-    st.info(f"Using Graph Storage: {graph_storage}")
-
-    if graph_storage == "Neo4JStorage":
-        verify_neo4j_connection()
-
-    initialize_rag(WORKING_DIR, LANGUAGE, graph_storage)
+    check_storage(st.session_state.working_dir, filename)
 
     mode = select_search_mode()
 
     if st.button("Create Index", help="初めて使用するデータの場合は、質問の前にインデックスを作成してください。"):
         with st.spinner("Creating index..."):
-            make_index(filename)
-
+            await make_index(filename)
     if st.button("View Knowledge Graph", help="知識グラフを確認する"):
         display_knowledge_graph(graph_storage, filename)
 
@@ -248,4 +118,4 @@ def main():
 
 # メイン関数の実行
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

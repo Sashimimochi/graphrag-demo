@@ -24,7 +24,7 @@ x-neo4j-service: &neo4j-service
 
 x-lightrag-service: &lightrag-service
   container_name: lightrag
-  image: ghcr.io/hkuds/lightrag:1.3.7
+  image: ghcr.io/hkuds/lightrag:1.3.9
   ports:
     - "${PORT:-9621}:9621"
   volumes:
