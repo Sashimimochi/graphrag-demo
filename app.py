@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 from dotenv import load_dotenv
 from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
 from utils.rag import make_index, search
-from utils.common import select_dataset, select_language, select_graph_storage, check_storage, select_search_mode
+from utils.common import select_dataset, select_language, select_graph_storage, check_storage, select_search_mode, select_modal, upload_image, ModalType
 
 nest_asyncio.apply()
 
@@ -70,7 +70,7 @@ def display_chat_history():
             st.markdown(message["content"])
 
 # ユーザー入力に反応
-def handle_user_input(mode):
+def handle_user_input(mode, modal, img_base64=None):
     if prompt := st.chat_input("LLMへの質問内容を入力してください。ex.この文章の主要なテーマはなんですか？", key="query"):
         # ユーザーメッセージの表示
         st.chat_message("user").markdown(prompt)
@@ -80,7 +80,7 @@ def handle_user_input(mode):
         with st.chat_message("assistant"):
             with st.spinner("Assistant is thinking..."):
                 placeholder = st.empty()
-                msg = asyncio.run(search(mode, query=prompt))
+                msg = asyncio.run(search(mode, query=prompt, modal=modal, img_base64=img_base64))
                 placeholder.markdown(msg)
                 # アシスタントメッセージをチャット履歴に追加
                 st.session_state.messages.append({"role": "assistant", "content": msg})
@@ -104,17 +104,20 @@ async def main():
     graph_storage = select_graph_storage()
     check_storage(st.session_state.working_dir, filename)
 
-    mode = select_search_mode()
-
     if st.button("Create Index", help="初めて使用するデータの場合は、質問の前にインデックスを作成してください。"):
         with st.spinner("Creating index..."):
             await make_index(filename)
     if st.button("View Knowledge Graph", help="知識グラフを確認する"):
         display_knowledge_graph(graph_storage, filename)
 
+    mode = select_search_mode()
+    modal = select_modal()
     initialize_chat_history()
     display_chat_history()
-    handle_user_input(mode)
+    img_base64 = None
+    if modal == ModalType.MULTIMODAL_INPUT:
+        img_base64 = upload_image()
+    handle_user_input(mode, modal, img_base64)
 
 # メイン関数の実行
 if __name__ == "__main__":

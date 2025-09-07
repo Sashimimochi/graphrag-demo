@@ -21,6 +21,10 @@ up-local:
 	@make launch-local
 	@make open
 
+check-mineru:
+	docker compose exec app mineru --version
+	docker compose exec app python -c "from raganything import RAGAnything; rag = RAGAnything(); print('✅ MinerU installed properly' if rag.check_parser_installation() else '❌ MinerU installation issue')"
+
 jupyter:
 	docker-compose exec app jupyter lab --allow-root --ip 0.0.0.0
 
@@ -39,6 +43,11 @@ clean:
 	@make down
 	rm -rf sample/ neo4j/*
 	docker-compose down --rmi all --volumes --remove-orphans
+
+clean-local:
+	@make down-local
+	rm -rf sample/ neo4j/*
+	docker-compose --profile local down --rmi all --volumes --remove-orphans
 
 allclean:
 	@make clean
