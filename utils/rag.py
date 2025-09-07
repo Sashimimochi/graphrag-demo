@@ -59,39 +59,12 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
         base_url=BASE_URL,
     )
 
-# RAGオブジェクトの初期化
-async def initialize_rag():
-    graph_storage = select_graph_storage()
-    working_dir = st.session_state.working_dir
-    language = st.session_state.language
-
-    rag = LightRAG(
-        working_dir=working_dir,
-        llm_model_func=llm_model_func,
-        llm_model_max_async=MAX_ASYNC,
-        embedding_func_max_async=MAX_ASYNC,
-        chunk_token_size=CHUNK_SIZE,
-        embedding_func=EmbeddingFunc(
-            embedding_dim=EMBEDDING_DIM,
-            max_token_size=MAX_TOKENS,
-            func=embedding_func
-        ),
-        graph_storage=graph_storage,
-        addon_params={
-            "language": language,
-            "entity_types": ["organization", "person", "geo", "event", "category", "product"],
-        },
-    )
-    await rag.initialize_storages()
-    await initialize_pipeline_status()
-    return rag
-
-def vision_model_func(
+async def vision_model_func(
         prompt, system_prompt=None,
         history_messages=[], image_data=None,
         messages=None, **kwargs):
     if messages:
-        return openai_complete_if_cache(
+        return await openai_complete_if_cache(
             LLM_MODEL,
             "",
             system_prompt=None,
@@ -102,7 +75,7 @@ def vision_model_func(
             **kwargs,
         )
     elif image_data:
-        return openai_complete_if_cache(
+        return await openai_complete_if_cache(
             LLM_MODEL,
             "",
             system_prompt=None,
@@ -129,12 +102,39 @@ def vision_model_func(
             **kwargs,
         )
     else:
-        return llm_model_func(
+        return await llm_model_func(
             prompt,
             system_prompt=system_prompt,
             history_messages=history_messages,
             **kwargs,
         )
+
+# RAGオブジェクトの初期化
+async def initialize_rag():
+    graph_storage = select_graph_storage()
+    working_dir = st.session_state.working_dir
+    language = st.session_state.language
+
+    rag = LightRAG(
+        working_dir=working_dir,
+        llm_model_func=llm_model_func,
+        llm_model_max_async=MAX_ASYNC,
+        embedding_func_max_async=MAX_ASYNC,
+        chunk_token_size=CHUNK_SIZE,
+        embedding_func=EmbeddingFunc(
+            embedding_dim=EMBEDDING_DIM,
+            max_token_size=MAX_TOKENS,
+            func=embedding_func
+        ),
+        graph_storage=graph_storage,
+        addon_params={
+            "language": language,
+            "entity_types": ["organization", "person", "geo", "event", "category", "product"],
+        },
+    )
+    await rag.initialize_storages()
+    await initialize_pipeline_status()
+    return rag
 
 def initialize_rag_anything(rag):
     config = RAGAnythingConfig(
@@ -213,7 +213,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
                 multimodal_content=[{
                     "type": "image",
                     "source_type": "base64",
-                    "mine_type": "image/png",
+                    "mime_type": "image/png",
                     "data": img_base64,
                 }],
                 mode=mode,
