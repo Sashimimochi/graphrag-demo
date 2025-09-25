@@ -69,7 +69,7 @@ def select_modal():
         "Select Query Modal",
         [modal.value for modal in ModalType],
         key="modal",
-        help="- `Text Only`: テキストだけで検索する\n- `Multimodal`: 画像や表を含むマルチモーダル検索を行う\n- `Both`: テキストとマルチモーダル両方の出力をする"
+        help="- `Text Only`: テキストだけで検索する\n- `Multimodal`: 画像や表を含むマルチモーダル検索を行う\n- `Multimodal Input`: 画像を入力して検索を行う（画像アップロードが必要です）\n- `Both`: テキストとマルチモーダル両方の出力をする"
     )
     return ModalType(modal)
 
