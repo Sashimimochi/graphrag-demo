@@ -156,7 +156,6 @@ def initialize_rag_anything(rag):
 # インデックス作成関数の定義
 async def make_index(filepath):
     lightrag = None
-    rag = None
     try:
       lightrag = await initialize_rag()
       rag = initialize_rag_anything(lightrag)
@@ -178,8 +177,6 @@ async def make_index(filepath):
     finally:
       if lightrag:
         await lightrag.finalize_storages()
-      if rag:
-        await rag.finalize_storages()
 
 # 検索関数の定義
 async def search(mode, query="この文章を読むとどのような知見が得られるか簡潔にまとめてください。", modal=ModalType.TEXT_ONLY, img_base64=None):
