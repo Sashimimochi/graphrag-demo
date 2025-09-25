@@ -7,6 +7,8 @@ from lightrag.kg.shared_storage import initialize_pipeline_status
 from lightrag.llm.openai import openai_embed, openai_complete_if_cache
 from lightrag.utils import EmbeddingFunc, setup_logger
 from utils.common import select_graph_storage
+from raganything import RAGAnything, RAGAnythingConfig
+from utils.common import ModalType
 
 # 環境変数をロード
 load_dotenv()
@@ -57,6 +59,56 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
         base_url=BASE_URL,
     )
 
+async def vision_model_func(
+        prompt, system_prompt=None,
+        history_messages=[], image_data=None,
+        messages=None, **kwargs):
+    if messages:
+        return await openai_complete_if_cache(
+            LLM_MODEL,
+            "",
+            system_prompt=None,
+            history_messages=[],
+            messages=messages,
+            api_key=API_KEY,
+            base_url=BASE_URL,
+            **kwargs,
+        )
+    elif image_data:
+        return await openai_complete_if_cache(
+            LLM_MODEL,
+            "",
+            system_prompt=None,
+            history_messages=[],
+            messages=[
+                {"role": "system", "content": system_prompt}
+                if system_prompt
+                else None,
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{image_data}"},
+                        },
+                    ],
+                }
+                if image_data
+                else {"role": "user", "content": prompt},
+            ],
+            api_key=API_KEY,
+            base_url=BASE_URL,
+            **kwargs,
+        )
+    else:
+        return await llm_model_func(
+            prompt,
+            system_prompt=system_prompt,
+            history_messages=history_messages,
+            **kwargs,
+        )
+
 # RAGオブジェクトの初期化
 async def initialize_rag():
     graph_storage = select_graph_storage()
@@ -84,23 +136,50 @@ async def initialize_rag():
     await initialize_pipeline_status()
     return rag
 
+def initialize_rag_anything(rag):
+    config = RAGAnythingConfig(
+       working_dir=st.session_state.working_dir,
+       parser="mineru",
+       parse_method="auto",
+       enable_image_processing=True,
+       enable_table_processing=True,
+       enable_equation_processing=True,
+    )
+
+    rag_anything = RAGAnything(
+       lightrag=rag,
+       config=config,
+       vision_model_func=vision_model_func,
+    )
+    return rag_anything
+
 # インデックス作成関数の定義
 async def make_index(filepath):
-    rag = None
+    lightrag = None
     try:
-      rag = await initialize_rag()
-      with open(os.path.join(DATA_DIR, f"{filepath}.txt")) as f:
+      lightrag = await initialize_rag()
+      rag = initialize_rag_anything(lightrag)
+      input_filepath = os.path.join(DATA_DIR, f"{filepath}.txt")
+      st.info(f"インデックスを作成中です。しばらくお待ちください... {input_filepath}")
+      with open(input_filepath) as f:
         content = f.read()
-      rag.insert(content)
+      lightrag.insert(content)
+      await rag.process_folder_complete(
+        folder_path=DATA_DIR,
+        output_dir=st.session_state.working_dir,
+        file_extensions=[".jpeg", ".jpg", ".png", ".pdf", ".pptx", ".docx"],
+        recursive=True,
+        max_workers=1,
+      )
       st.success("インデックスの作成が完了しました。")
     except Exception as e:
       st.error(f"インデックスの作成に失敗しました: {e}")
     finally:
-      if rag:
-        await rag.finalize_storages()
+      if lightrag:
+        await lightrag.finalize_storages()
 
 # 検索関数の定義
-async def search(mode, query="この文章を読むとどのような知見が得られるか簡潔にまとめてください。"):
+async def search(mode, query="この文章を読むとどのような知見が得られるか簡潔にまとめてください。", modal=ModalType.TEXT_ONLY, img_base64=None):
     """
     Perform mix search (Knowledge Graph + Vector Retrieval)
     Mix mode combines knowledge graph and vector search:
@@ -109,17 +188,57 @@ async def search(mode, query="この文章を読むとどのような知見が�
     - Supports image content through HTML img tags
     - Allows control over retrieval depth via top_k parameter
     """
+
     rag = None
     msg = ""
+    msg_multimodal = ""
     try:
         rag = await initialize_rag()
-        msg = rag.query(query, param=QueryParam(mode=mode))
+        rag_anything = initialize_rag_anything(rag)
+
+        if modal == ModalType.TEXT_ONLY:
+            msg = rag.query(query, param=QueryParam(mode=mode))
+        elif modal == ModalType.MULTIMODAL:
+            msg_multimodal = rag_anything.query(
+                query=query,
+                mode=mode,
+                vlm_enhanced=True,
+            )
+        elif modal == ModalType.MULTIMODAL_INPUT:
+            if not img_base64:
+                st.error("Please upload an image for Multimodal Input mode.")
+                return "Error: No image provided for Multimodal Input mode."
+            msg = rag_anything.query_with_multimodal(
+                query,
+                multimodal_content=[{
+                    "type": "image",
+                    "source_type": "base64",
+                    "mime_type": "image/png",
+                    "data": img_base64,
+                }],
+                mode=mode,
+            )
+        elif modal == ModalType.BOTH:
+            msg = rag.query(query, param=QueryParam(mode=mode))
+            msg_multimodal = rag_anything.query(
+                query=query,
+                mode=mode,
+                vlm_enhanced=True,
+            )
+        else:
+            st.error(f"Invalid modal type: {modal}")
+            return f"Error: Invalid modal type: {modal}"
+
         print("="*100)
         print(f"\nquestion: {query}")
         print(f"[Mode: {mode} Search]")
         print("-"*30)
         print("")
         print(msg)
+        if modal == ModalType.MULTIMODAL:
+            msg = msg_multimodal
+        elif modal == ModalType.BOTH:
+            msg = f"#### Text Only\n{msg}\n\n#### Multimodal\n{msg_multimodal}"
     except Exception as e:
         st.error(f"Search failed: {e}")
         msg = f"Search failed: {e}"
