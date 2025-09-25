@@ -155,6 +155,7 @@ def initialize_rag_anything(rag):
 
 # インデックス作成関数の定義
 async def make_index(filepath):
+    lightrag = None
     rag = None
     try:
       lightrag = await initialize_rag()
@@ -165,7 +166,7 @@ async def make_index(filepath):
         content = f.read()
       lightrag.insert(content)
       await rag.process_folder_complete(
-        folder_path="data",
+        folder_path=DATA_DIR,
         output_dir=st.session_state.working_dir,
         file_extensions=[".jpeg", ".jpg", ".png", ".pdf", ".pptx", ".docx"],
         recursive=True,
@@ -175,6 +176,8 @@ async def make_index(filepath):
     except Exception as e:
       st.error(f"インデックスの作成に失敗しました: {e}")
     finally:
+      if lightrag:
+        await lightrag.finalize_storages()
       if rag:
         await rag.finalize_storages()
 
