@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY requirements.txt .
 
+# Install mineru without dependencies first to allow pdfminer.six security update
+# mineru pins pdfminer.six to vulnerable version, but we override it for CVE-502 fix
 RUN pip install --upgrade pip setuptools wheel && \
   pip install --no-cache-dir --prefix=/install --no-deps mineru==2.6.5 && \
   pip install --no-cache-dir --prefix=/install -r requirements.txt
