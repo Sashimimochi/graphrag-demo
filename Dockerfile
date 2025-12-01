@@ -5,6 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN pip install --upgrade pip setuptools wheel && \
+  pip install --no-cache-dir --prefix=/install --no-deps mineru==2.6.5 && \
   pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ランタイムステージ
