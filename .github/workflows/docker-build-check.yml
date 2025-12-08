@@ -43,4 +43,4 @@ jobs:
           push: false
           tags: graphrag-demo:test
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
