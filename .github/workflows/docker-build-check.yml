@@ -41,6 +41,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: false
+          load: false
           tags: graphrag-demo:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=min
