@@ -298,7 +298,7 @@ tornado==6.5.2
 tqdm==4.67.1
 traitlets==5.14.3
 transformers==4.53.0
-triton==3.3.1
+triton==3.4.0
 typer==0.17.4
 types-python-dateutil==2.9.0.20250822
 typing-inspection==0.4.1
