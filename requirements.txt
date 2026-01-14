@@ -66,7 +66,7 @@ fastapi==0.120.1
 fastjsonschema==2.21.2
 fasttext-predict==0.9.2.4
 ffmpy==0.6.1
-filelock==3.20.1
+filelock==3.20.3
 flatbuffers==25.2.10
 fnllm==0.4.1
 fonttools==4.61.0
