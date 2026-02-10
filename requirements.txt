@@ -160,7 +160,7 @@ murmurhash==1.0.13
 nano-vectordb==0.0.4.3
 narwhals==2.3.0
 nbclient==0.10.2
-nbconvert==7.16.6
+nbconvert==7.17.0
 nbformat==5.10.4
 neo4j==5.27.0
 nest-asyncio==1.6.0
