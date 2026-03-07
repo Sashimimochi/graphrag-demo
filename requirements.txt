@@ -88,7 +88,7 @@ googleapis-common-protos==1.66.0
 gradio==6.5.1
 gradio_client==2.0.3
 gradio_pdf==0.0.24
-graphrag==3.0.5
+graphrag==3.0.6
 graspologic==3.4.1
 graspologic-native==1.2.5
 groovy==0.1.2
@@ -165,7 +165,7 @@ nbformat==5.10.4
 neo4j==5.27.0
 nest-asyncio==1.6.0
 networkx==3.4.2
-nltk==3.9.3
+nltk==3.9.1
 notebook_shim==0.2.4
 numba==0.61.2
 numpy==1.26.4
