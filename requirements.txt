@@ -86,7 +86,7 @@ google-auth-httplib2==0.2.0
 google-generativeai==0.8.3
 googleapis-common-protos==1.66.0
 gradio==6.7.0
-gradio_client==2.0.3
+gradio_client==2.2.0
 gradio_pdf==0.0.24
 graphrag==2.5.0
 graspologic==3.4.1
