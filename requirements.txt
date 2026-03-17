@@ -88,7 +88,7 @@ googleapis-common-protos==1.66.0
 gradio==6.5.1
 gradio_client==2.0.3
 gradio_pdf==0.0.24
-graphrag==3.0.5
+graphrag==3.0.6
 graspologic==3.4.1
 graspologic-native==1.2.5
 groovy==0.1.2
