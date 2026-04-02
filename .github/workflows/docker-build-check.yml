@@ -5,17 +5,18 @@ on:
     branches:
       - main
     paths:
-      - 'Dockerfile'
-      - 'requirements.txt'
-      - 'docker-compose.yml'
-      - '.github/workflows/docker-build-check.yml'
+      - "Dockerfile"
+      - "requirements.in" # Add requirements.in as a trigger
+      - "requirements.txt"
+      - "docker-compose.yml"
+      - ".github/workflows/docker-build-check.yml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     steps:
       - name: Free disk space
         run: |
@@ -28,13 +29,13 @@ jobs:
           sudo docker image prune --force
           echo "Disk space after cleanup:"
           df -h
-      
+
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
@@ -42,4 +43,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: false
+          # Use GitHub Actions cache to speed up pip install in subsequent runs
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: graphrag-demo:test
