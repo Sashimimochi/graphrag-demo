@@ -1,0 +1,13 @@
+lightrag_hku==1.4.7
+nest_asyncio==1.6.0
+networkx==3.4.2
+numpy==2.4.4
+pandas==2.3.3
+Pillow==12.2.0
+python-dotenv==1.2.2
+pyvis==0.3.2
+raganything==1.2.8
+streamlit==1.56.0
+yfiles_jupyter_graphs==1.10.11
+graphrag==3.0.8
+neo4j==5.27.0
