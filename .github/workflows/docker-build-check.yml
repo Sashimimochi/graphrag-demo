@@ -43,7 +43,4 @@ jobs:
           file: ./Dockerfile
           push: false
           load: false
-          # Use GitHub Actions cache to speed up pip install in subsequent runs
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           tags: graphrag-demo:test
