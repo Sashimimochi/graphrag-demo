@@ -358,7 +358,7 @@ lightrag-hku==1.4.14
     # via
     #   -r requirements.in
     #   raganything
-litellm==1.82.6
+litellm==1.83.0
     # via graphrag-llm
 loguru==0.7.3
     # via
@@ -872,7 +872,7 @@ traitlets==5.14.3
     #   ipython
     #   ipywidgets
     #   matplotlib-inline
-transformers==4.57.6
+transformers==5.0.0rc3
     # via mineru
 triton==3.6.0
     # via torch
