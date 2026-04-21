@@ -664,7 +664,7 @@ pyjwt==2.12.1
     # via msal
 pylatexenc==2.10
     # via mineru
-pypdf==6.10.0
+pypdf==6.10.2
     # via mineru
 pypdfium2==4.30.0
     # via
