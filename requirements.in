@@ -6,7 +6,7 @@ pandas==2.3.3
 Pillow==12.2.0
 python-dotenv==1.2.2
 pyvis==0.3.2
-raganything==1.2.8
+raganything==1.2.10
 streamlit==1.56.0
 yfiles_jupyter_graphs==1.10.11
 graphrag==3.0.9
