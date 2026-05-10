@@ -689,7 +689,7 @@ python-dotenv==1.2.2
     #   litellm
     #   magika
     #   pydantic-settings
-python-multipart==0.0.26
+python-multipart==0.0.27
     # via
     #   gradio
     #   mineru
