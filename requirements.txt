@@ -364,7 +364,7 @@ loguru==0.7.3
     # via
     #   mineru
     #   mineru-vl-utils
-lxml==6.0.4
+lxml==6.1.0
     # via
     #   mineru
     #   pypptx-with-oxml
