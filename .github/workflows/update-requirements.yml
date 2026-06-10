@@ -1,0 +1,62 @@
+name: Update requirements
+
+on:
+  workflow_dispatch:
+    inputs:
+      upgrade:
+        description: "Run uv pip compile with --upgrade"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  compile-requirements:
+    name: Compile requirements.txt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Compile requirements.txt
+        run: |
+          if [[ "${{ inputs.upgrade }}" == "true" ]]; then
+            uv pip compile requirements.in -o requirements.txt --upgrade
+          else
+            uv pip compile requirements.in -o requirements.txt
+          fi
+
+      # Use a PAT/App token when the repository setting blocks GITHUB_TOKEN from
+      # creating pull requests. If CREATE_PULL_REQUEST_TOKEN is not configured,
+      # this falls back to github.token and requires the repository setting
+      # "Allow GitHub Actions to create and approve pull requests" to be enabled.
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.CREATE_PULL_REQUEST_TOKEN || github.token }}
+          commit-message: "chore: update compiled requirements"
+          title: "chore: update compiled requirements"
+          body: |
+            This PR updates `requirements.txt` by running:
+
+            ```sh
+            uv pip compile requirements.in -o requirements.txt${{ inputs.upgrade && ' --upgrade' || '' }}
+            ```
+
+            The workflow only opens or updates this PR when the compiled output changes.
+          branch: chore/update-compiled-requirements
+          delete-branch: true
