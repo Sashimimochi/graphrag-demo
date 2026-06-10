@@ -9,5 +9,5 @@ pyvis==0.3.2
 raganything==1.2.10
 streamlit==1.56.0
 yfiles_jupyter_graphs==1.10.11
-graphrag==3.0.9
+graphrag==3.1.0
 neo4j==5.27.0
