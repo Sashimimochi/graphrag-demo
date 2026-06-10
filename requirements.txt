@@ -9,7 +9,7 @@ aiofiles==24.1.0
     #   mineru-vl-utils
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.5
+aiohttp==3.14.0
     # via
     #   lightrag-hku
     #   litellm
@@ -230,7 +230,7 @@ gradio-client==2.2.0
     # via gradio
 gradio-pdf==0.0.24
     # via mineru
-graphrag==3.0.9
+graphrag==3.1.0
     # via -r requirements.in
 graphrag-cache==3.0.9
     # via
@@ -609,7 +609,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
-pyarrow==22.0.0
+pyarrow==23.0.1
     # via
     #   graphrag
     #   graphrag-input
@@ -808,7 +808,7 @@ srsly==2.5.3
     #   weasel
 stack-data==0.6.3
     # via ipython
-starlette==0.52.1
+starlette==1.0.1
     # via
     #   fastapi
     #   gradio
