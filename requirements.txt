@@ -9,7 +9,7 @@ aiofiles==24.1.0
     #   mineru-vl-utils
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.14.0
+aiohttp==3.14.1
     # via
     #   lightrag-hku
     #   litellm
@@ -358,7 +358,7 @@ lightrag-hku==1.4.14
     # via
     #   -r requirements.in
     #   raganything
-litellm==1.83.10
+litellm==1.84.0
     # via graphrag-llm
 loguru==0.7.3
     # via
@@ -689,7 +689,7 @@ python-dotenv==1.2.2
     #   litellm
     #   magika
     #   pydantic-settings
-python-multipart==0.0.27
+python-multipart==0.0.30
     # via
     #   gradio
     #   mineru
@@ -808,7 +808,7 @@ srsly==2.5.3
     #   weasel
 stack-data==0.6.3
     # via ipython
-starlette==1.0.1
+starlette==1.1.0
     # via
     #   fastapi
     #   gradio
@@ -852,7 +852,7 @@ torch==2.10.0
     #   torchvision
 torchvision==0.25.0
     # via mineru
-tornado==6.5.5
+tornado==6.5.6
     # via streamlit
 tqdm==4.67.3
     # via
