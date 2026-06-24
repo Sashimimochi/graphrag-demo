@@ -648,7 +648,7 @@ pydantic==2.13.0
     #   weasel
 pydantic-core==2.46.0
     # via pydantic
-pydantic-settings==2.13.1
+pydantic-settings==2.14.2
     # via pdftext
 pydeck==0.9.1
     # via streamlit
@@ -660,11 +660,11 @@ pygments==2.20.0
     #   ipython
     #   ipython-pygments-lexers
     #   rich
-pyjwt==2.12.1
+pyjwt==2.13.0
     # via msal
 pylatexenc==2.10
     # via mineru
-pypdf==6.10.2
+pypdf==6.13.0
     # via mineru
 pypdfium2==4.30.0
     # via
