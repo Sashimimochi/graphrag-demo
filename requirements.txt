@@ -140,7 +140,7 @@ confection==1.3.3
     #   weasel
 configparser==7.2.0
     # via lightrag-hku
-cryptography==46.0.7
+cryptography==48.0.1
     # via
     #   azure-identity
     #   azure-storage-blob
@@ -664,7 +664,7 @@ pyjwt==2.13.0
     # via msal
 pylatexenc==2.10
     # via mineru
-pypdf==6.13.0
+pypdf==6.13.3
     # via mineru
 pypdfium2==4.30.0
     # via
@@ -689,7 +689,7 @@ python-dotenv==1.2.2
     #   litellm
     #   magika
     #   pydantic-settings
-python-multipart==0.0.30
+python-multipart==0.0.31
     # via
     #   gradio
     #   mineru
@@ -808,7 +808,7 @@ srsly==2.5.3
     #   weasel
 stack-data==0.6.3
     # via ipython
-starlette==1.1.0
+starlette==1.3.1
     # via
     #   fastapi
     #   gradio
@@ -852,7 +852,7 @@ torch==2.10.0
     #   torchvision
 torchvision==0.25.0
     # via mineru
-tornado==6.5.6
+tornado==6.5.7
     # via streamlit
 tqdm==4.67.3
     # via
