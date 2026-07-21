@@ -1,21 +1,22 @@
 name: Update requirements
 
 on:
+  schedule:
+    # Every Monday at 00:00 UTC. The workflow opens a PR instead of pushing to main.
+    - cron: "0 0 * * 1"
   workflow_dispatch:
-    inputs:
-      upgrade:
-        description: "Run uv pip compile with --upgrade"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: update-requirements
+  cancel-in-progress: true
+
 jobs:
   compile-requirements:
-    name: Compile requirements.txt
+    name: Update requirements.txt
     runs-on: ubuntu-latest
 
     steps:
@@ -32,13 +33,8 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Compile requirements.txt
-        run: |
-          if [[ "${{ inputs.upgrade }}" == "true" ]]; then
-            uv pip compile requirements.in -o requirements.txt --upgrade
-          else
-            uv pip compile requirements.in -o requirements.txt
-          fi
+      - name: Upgrade and compile requirements.txt
+        run: uv pip compile requirements.in -o requirements.txt --upgrade
 
       # Use a PAT/App token when the repository setting blocks GITHUB_TOKEN from
       # creating pull requests. If CREATE_PULL_REQUEST_TOKEN is not configured,
@@ -51,12 +47,12 @@ jobs:
           commit-message: "chore: update compiled requirements"
           title: "chore: update compiled requirements"
           body: |
-            This PR updates `requirements.txt` by running:
+            This PR updates `requirements.txt` from `requirements.in` by running:
 
             ```sh
-            uv pip compile requirements.in -o requirements.txt${{ inputs.upgrade && ' --upgrade' || '' }}
+            uv pip compile requirements.in -o requirements.txt --upgrade
             ```
 
-            The workflow only opens or updates this PR when the compiled output changes.
+            The workflow runs weekly and only opens or updates this PR when the compiled output changes.
           branch: chore/update-compiled-requirements
           delete-branch: true
