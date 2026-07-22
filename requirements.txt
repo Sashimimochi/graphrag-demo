@@ -210,7 +210,7 @@ ftfy==6.3.1
     # via mineru
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.50
+gitpython==3.1.51
     # via streamlit
 google-api-core==2.30.3
     # via lightrag-hku
@@ -616,7 +616,7 @@ pyarrow==23.0.1
     #   graphrag-vectors
     #   lancedb
     #   streamlit
-pyasn1==0.6.3
+pyasn1==0.6.4
     # via pyasn1-modules
 pyasn1-modules==0.4.2
     # via google-auth
@@ -767,7 +767,7 @@ scipy==1.17.1
     #   scikit-image
 semantic-version==2.10.0
     # via gradio
-setuptools==82.0.1
+setuptools==83.0.0
     # via
     #   lightrag-hku
     #   modelscope
