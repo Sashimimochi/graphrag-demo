@@ -3,7 +3,7 @@ nest_asyncio==1.6.0
 networkx==3.4.2
 numpy==2.4.4
 pandas==2.3.3
-Pillow==12.3.0
+pillow==12.3.0
 python-dotenv==1.2.2
 pyvis==0.3.2
 raganything==1.2.10
