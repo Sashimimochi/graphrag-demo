@@ -767,7 +767,7 @@ scipy==1.17.1
     #   scikit-image
 semantic-version==2.10.0
     # via gradio
-setuptools==82.0.1
+setuptools==83.0.0
     # via
     #   lightrag-hku
     #   modelscope
