@@ -568,7 +568,7 @@ pdftext==0.6.3
     # via mineru
 pexpect==4.9.0
     # via ipython
-pillow==12.2.0
+pillow==12.3.0
     # via
     #   -r requirements.in
     #   gradio
