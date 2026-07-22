@@ -354,7 +354,7 @@ lancedb==0.24.3
     # via graphrag-vectors
 lazy-loader==0.5
     # via scikit-image
-lightrag-hku==1.4.14
+lightrag-hku==1.5.4
     # via
     #   -r requirements.in
     #   raganything
