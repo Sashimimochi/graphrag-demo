@@ -30,7 +30,7 @@ anyio==4.14.2
     #   httpx
     #   openai
     #   starlette
-ascii-colors==0.11.26
+ascii-colors==0.12.1
     # via pipmaster
 asttokens==2.4.1
     # via
@@ -111,7 +111,7 @@ click==8.4.2
     #   spacy
     #   streamlit
     #   uvicorn
-cloudpathlib==0.24.0
+cloudpathlib==0.25.0
     # via weasel
 cobble==0.1.4
     # via mammoth
@@ -136,7 +136,7 @@ cryptography==50.0.0
     #   pyjwt
 cuda-bindings==13.3.1
     # via torch
-cuda-pathfinder==1.6.0
+cuda-pathfinder==1.6.1
     # via cuda-bindings
 cuda-toolkit==13.0.3.0
     # via torch
@@ -175,7 +175,7 @@ fastuuid==0.14.0
     # via litellm
 ffmpy==1.0.0
     # via gradio
-filelock==3.32.3
+filelock==3.32.4
     # via
     #   huggingface-hub
     #   modelscope
@@ -205,7 +205,7 @@ google-auth==2.56.3
     # via
     #   google-api-core
     #   google-genai
-google-genai==2.18.1
+google-genai==2.19.0
     # via lightrag-hku
 googleapis-common-protos==1.75.1
     # via google-api-core
@@ -280,7 +280,7 @@ huggingface-hub==0.36.2
     #   raganything
     #   tokenizers
     #   transformers
-idna==3.18
+idna==3.19
     # via
     #   anyio
     #   httpx
@@ -294,7 +294,7 @@ ipython==9.16.1
     #   pyvis
 ipython-pygments-lexers==1.1.1
     # via ipython
-ipywidgets==8.1.8
+ipywidgets==8.1.9
     # via yfiles-jupyter-graphs
 isodate==0.7.2
     # via
@@ -316,7 +316,7 @@ jiter==0.16.0
     # via openai
 joblib==1.5.3
     # via nltk
-json-repair==0.63.2
+json-repair==0.63.3
     # via
     #   graphrag
     #   lightrag-hku
@@ -329,7 +329,7 @@ jsonschema==4.26.0
     #   litellm
 jsonschema-specifications==2025.9.1
     # via jsonschema
-jupyterlab-widgets==3.0.16
+jupyterlab-widgets==3.0.17
     # via ipywidgets
 lancedb==0.24.3
     # via graphrag-vectors
@@ -343,7 +343,7 @@ loguru==0.7.3
     # via
     #   mineru
     #   mineru-vl-utils
-lxml==6.1.1
+lxml==6.1.2
     # via
     #   mineru
     #   pypptx-with-oxml
@@ -395,7 +395,7 @@ murmurhash==1.0.15
     #   thinc
 nano-vectordb==0.0.4.3
     # via lightrag-hku
-narwhals==2.24.0
+narwhals==2.25.0
     # via altair
 neo4j==5.27.0
     # via -r requirements.in
@@ -481,7 +481,7 @@ nvidia-nvshmem-cu13==3.4.5
     # via torch
 nvidia-nvtx==13.0.85
     # via cuda-toolkit
-onnxruntime==1.28.0
+onnxruntime==1.29.0
     # via
     #   magika
     #   mineru
@@ -560,7 +560,7 @@ propcache==0.5.2
     #   yarl
 proto-plus==1.28.3
     # via google-api-core
-protobuf==7.35.1
+protobuf==7.36.0
     # via
     #   google-api-core
     #   googleapis-common-protos
@@ -619,7 +619,7 @@ pydeck==0.9.3
     # via streamlit
 pydub==0.25.1
     # via gradio
-pygments==2.20.0
+pygments==2.21.0
     # via
     #   devtools
     #   ipython
@@ -629,7 +629,7 @@ pyjwt==2.13.0
     # via msal
 pylatexenc==2.11
     # via mineru
-pypdf==6.16.1
+pypdf==6.16.2
     # via mineru
 pypdfium2==5.10.1
     # via
@@ -683,7 +683,7 @@ regex==2026.7.19
     #   nltk
     #   tiktoken
     #   transformers
-reportlab==5.0.0
+reportlab==5.0.1
     # via mineru
 requests==2.34.2
     # via
@@ -718,7 +718,7 @@ safetensors==0.8.0
     #   accelerate
     #   mineru
     #   transformers
-scipy==1.18.0
+scipy==1.18.1
     # via graspologic-native
 semantic-version==2.10.0
     # via gradio
@@ -778,7 +778,7 @@ textblob==0.20.1
     # via graphrag
 thinc==8.3.13
     # via spacy
-tiktoken==0.13.0
+tiktoken==0.14.0
     # via
     #   lightrag-hku
     #   litellm
@@ -872,7 +872,7 @@ urllib3==2.7.0
     #   modelscope
     #   modelscope-hub
     #   requests
-uvicorn==0.52.3
+uvicorn==0.52.4
     # via
     #   gradio
     #   mineru
@@ -892,7 +892,7 @@ weasel==1.0.0
     # via spacy
 websockets==16.1.1
     # via google-genai
-widgetsnbextension==4.0.15
+widgetsnbextension==4.0.16
     # via ipywidgets
 wrapt==2.3.0
     # via smart-open
