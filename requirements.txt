@@ -678,7 +678,7 @@ referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
-regex==2026.7.19
+regex==2026.8.31
     # via
     #   nltk
     #   tiktoken
@@ -894,7 +894,7 @@ websockets==16.1.1
     # via google-genai
 widgetsnbextension==4.0.16
     # via ipywidgets
-wrapt==2.3.0
+wrapt==2.4.0
     # via smart-open
 xlsxwriter==3.2.9
     # via
