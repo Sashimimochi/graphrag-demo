@@ -4,4 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    requirements-update-strategy: "lockfile-only"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
