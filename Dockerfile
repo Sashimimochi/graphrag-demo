@@ -6,14 +6,11 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 WORKDIR /app
 
-# 入力となる「直接の要求」ファイルをコピー
-COPY requirements.in .
+# requirements.txt は requirements.in から uv pip compile で生成したlockfile。
+COPY requirements.txt .
 
-# 1. requirements.in から依存関係を解決し、一時的な requirements.txt を生成
-# 2. 生成された requirements.txt を元に /install にライブラリをインストール
-# これにより、pdfminer.six の上書きなども含めた整合性がこの中で解決されます
-RUN uv pip compile requirements.in -o requirements.txt && \
-  uv pip install --no-cache --prefix=/install -r requirements.txt
+# 生成済みのlockfileから、固定された依存関係をインストール
+RUN uv pip install --no-cache --prefix=/install -r requirements.txt
 
 # --- ランタイムステージ ---
 FROM python:3.12-slim
