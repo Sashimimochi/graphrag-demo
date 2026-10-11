@@ -6,7 +6,7 @@ description = "A Streamlit demo for GraphRAG and LightRAG."
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "graphrag==3.2.0",
-    "lightrag-hku==1.5.5",
+    "lightrag-hku==1.5.7",
     "nest-asyncio==1.6.0",
     "networkx==3.7",
     "neo4j==5.27.0",
