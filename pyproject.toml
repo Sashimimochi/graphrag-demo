@@ -10,7 +10,7 @@ dependencies = [
     "networkx==3.4.2",
     "neo4j==5.27.0",
     "numpy==2.4.4",
-    "pandas==2.3.3",
+    "pandas==3.0.6",
     "pillow==12.3.0",
     "pyvis==0.3.2",
     "python-dotenv==1.2.2",
