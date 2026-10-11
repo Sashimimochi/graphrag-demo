@@ -36,6 +36,7 @@ jobs:
         run: uv lock --check --python 3.12
 
   build:
+    needs: lockfile-check
     runs-on: ubuntu-latest
     permissions:
       contents: read
