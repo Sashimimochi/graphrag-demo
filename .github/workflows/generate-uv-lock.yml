@@ -1,6 +1,11 @@
 name: Generate uv lockfile (migration bootstrap)
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
   push:
     branches:
       - "migrate/uv-lock"
@@ -17,7 +22,7 @@ jobs:
       - name: Checkout migration branch
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -34,6 +39,8 @@ jobs:
         run: uv lock --python 3.12
 
       - name: Commit generated lockfile
+        env:
+          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -43,4 +50,4 @@ jobs:
             exit 0
           fi
           git commit -m "chore: generate uv lockfile"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${TARGET_BRANCH}"
