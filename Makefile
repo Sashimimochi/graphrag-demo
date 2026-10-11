@@ -39,13 +39,19 @@ down-local:
 	docker-compose --profile local down --volumes
 	docker system prune -f
 
-# Dockerを使って依存関係を再計算し、ホスト側の requirements.txt を更新したい場合
-# (基本はビルド内で完結しますが、手元に書き出しておきたい場合に便利です)
-update-requirements:
-	docker run --rm -v $(PWD):/app ghcr.io/astral-sh/uv:python3.12-bookworm-slim \
-		sh -c "cd /app && uv pip compile requirements.in -o requirements.txt --upgrade"
+# Set up the local Python environment from the committed lockfile.
+sync-dependencies:
+	uv sync --locked --no-dev
 
-# ビルドして起動
+# Re-resolve dependencies after editing direct dependency pins in pyproject.toml.
+lock-dependencies:
+	uv lock
+
+# Upgrade all eligible transitive dependencies, then review and commit uv.lock.
+upgrade-dependencies:
+	uv lock --upgrade
+
+# Build and start
 build-force:
 	docker-compose build --no-cache
 	@make up

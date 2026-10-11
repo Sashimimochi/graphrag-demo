@@ -66,6 +66,18 @@ make up
 
 画面の案内にしたがって、順次処理を実行していく。
 
+## 依存関係の管理
+
+直接依存関係は `pyproject.toml`、解決済みの全依存関係はコミット対象の `uv.lock` で管理する。
+
+ローカルで開発環境を構築する場合は Python 3.12 と uv を用意し、以下を実行する。
+
+```bash
+uv sync --locked --no-dev
+```
+
+直接依存のバージョンを変更したときは `pyproject.toml` を編集して `uv lock` を実行する。推移的依存関係も含めて更新するときは `uv lock --upgrade` を実行し、変更内容を確認して `pyproject.toml` と `uv.lock` をコミットする。Docker ビルドと CI は `uv.lock` が `pyproject.toml` と一致しない場合に失敗する。
+
 ## Neo4jの使い方について
 
 グラフストレージとしてNeo4jを使用する場合のTipsを記載する。
@@ -107,7 +119,7 @@ Upload
 ....................  90%
 .................... 100%
 We have received your export and it is currently being loaded into your Aura instance.
-You can wait here, or abort this command and head over to the console to be notified of when your database is running.
+You can wait here, or abort this command and head to the console to be notified of when your database is running.
 Import progress (estimated)
 ....................  10%
 ....................  20%
@@ -119,7 +131,7 @@ Import progress (estimated)
 ....................  80%
 ....................  90%
 .................... 100%
-Your data was successfully pushed to Aura and is now running.
+Your data was successfully pushed to your Aura instance.
 It is safe to delete the dump file now: /dumps/neo4j
 ```
 
