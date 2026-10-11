@@ -17,7 +17,7 @@ dependencies = [
     "python-dotenv==1.2.2",
     "raganything==1.2.10",
     "streamlit==1.56.0",
-    "yfiles-jupyter-graphs==1.10.11",
+    "yfiles-jupyter-graphs==2.0.0",
 ]
 
 [tool.uv]
