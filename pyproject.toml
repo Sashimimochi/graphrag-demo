@@ -1,0 +1,24 @@
+[project]
+name = "graphrag-demo"
+version = "0.1.0"
+description = "A Streamlit demo for GraphRAG and LightRAG."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "graphrag==3.2.0",
+    "lightrag-hku==1.5.5",
+    "nest-asyncio==1.6.0",
+    "networkx==3.4.2",
+    "neo4j==5.27.0",
+    "numpy==2.4.4",
+    "pandas==2.3.3",
+    "pillow==12.3.0",
+    "pyvis==0.3.2",
+    "python-dotenv==1.2.2",
+    "raganything==1.2.10",
+    "streamlit==1.56.0",
+    "yfiles-jupyter-graphs==1.10.11",
+]
+
+[tool.uv]
+# This repository is an application run from its source tree, not an installable package.
+package = false
