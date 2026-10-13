@@ -23,3 +23,6 @@ dependencies = [
 [tool.uv]
 # This repository is an application run from its source tree, not an installable package.
 package = false
+# GraphRAG 3.3.0 restricts NLTK to the 3.9.x series; override that transitive constraint
+# so the project can use the patched 3.10.x line.
+override-dependencies = ["nltk>=3.10.3"]
