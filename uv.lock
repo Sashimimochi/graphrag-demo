@@ -13,13 +13,13 @@ name = "accelerate"
 version = "1.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "huggingface-hub" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "psutil" },
-    { name = "pyyaml" },
-    { name = "safetensors" },
-    { name = "torch" },
+    { name = "huggingface-hub", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "numpy", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "packaging", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "psutil", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "pyyaml", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "safetensors", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "torch", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f5/b5/1d3ed029ac71d3f2961346829a268da923698e9fd63f218f78841f216bfd/accelerate-1.15.0.tar.gz", hash = "sha256:5654f8c5eaa0d4fa68b33e287a97765da6849bf6d51dcac874e73fbbddfb6134", size = 422615, upload-time = "2026-09-09T13:04:49.078Z" }
 wheels = [
@@ -912,7 +912,7 @@ wheels = [
 
 [[package]]
 name = "graphrag"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-identity" },
@@ -941,49 +941,49 @@ dependencies = [
     { name = "typer" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3f/cc/a072a1aa98741a21681e8999bf11a6689c0509be32c9bfa85c6d5f010b20/graphrag-3.2.0.tar.gz", hash = "sha256:07bc97bda61cdc9005a1978e53d3211447e6efe934dfcc5909d3c1409fb89afe", size = 162184, upload-time = "2026-09-23T22:17:30.44Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/52/ec4aa14930de4eaa4d49a1c051480c5a17b818ec8e01dcfffcde8b8096d8/graphrag-3.3.0.tar.gz", hash = "sha256:a6a08724654d1808221d18c777cd7a7de90b013702e39f5a2b741754ed0aadc9", size = 162189, upload-time = "2026-10-08T18:27:15.458Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/99/328f170f21e3a741b2ec49f6f7853d35ef2dddb408892cc194bab6c5a3e7/graphrag-3.2.0-py3-none-any.whl", hash = "sha256:7cda066b9ec1c77544cca383537e8253f9e028781cf600f53361d7124ff8460a", size = 299335, upload-time = "2026-09-23T22:17:29.178Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/d8/dc0afab4b6d1eaca85608171cec84de79f9ed5273a0d069ccd463cd6478c/graphrag-3.3.0-py3-none-any.whl", hash = "sha256:24e57f54cbf02c4c678bd132e0cc1f1796bd020176ab02d77318a8f0de7bd9ee", size = 299337, upload-time = "2026-10-08T18:27:13.99Z" },
 ]
 
 [[package]]
 name = "graphrag-cache"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphrag-common" },
     { name = "graphrag-storage" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/53/2d/2bde64a78007925fe5b9d03ce23c6ab9323854e0841c8f097c74b3c15d9e/graphrag_cache-3.2.0.tar.gz", hash = "sha256:c88f73cb7b619df5383b2e1c2eb479b3a53fdcaee8d4a29b2413f8999b2f492d", size = 9125, upload-time = "2026-09-23T22:28:20.173Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/c7/309f2ca09e71a8a87029b13eb55bd94928ea3f467b7497bb5d0dc2e77c91/graphrag_cache-3.3.0.tar.gz", hash = "sha256:35f9c2ddabf96cb9366bbf9a301242a09be4079127f6419e1a8ae20b0bf911a1", size = 10270, upload-time = "2026-10-08T18:27:46.759Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/5e/c8e514aca296bae7745b1a357d3bd3876c7b47f6914f8714c8d91b438c01/graphrag_cache-3.2.0-py3-none-any.whl", hash = "sha256:186499291da23212c6f208fa203bfa47702bbd4e00ff86198b5aa0f2f2fa1b5c", size = 11977, upload-time = "2026-09-23T22:28:19.005Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/7a/05fd20b32eba898a1cf67a1d13576ff494fd8345b7548863734dd9595383/graphrag_cache-3.3.0-py3-none-any.whl", hash = "sha256:440fe7cc9460d18ae72379da90b1af82812b19db826f3f3b9fde4eaafc048980", size = 13377, upload-time = "2026-10-08T18:27:45.556Z" },
 ]
 
 [[package]]
 name = "graphrag-chunking"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphrag-common" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/74/1bbc269b13e235c6997f1d00853513034c86d419a9db0507bd7c061af741/graphrag_chunking-3.2.0.tar.gz", hash = "sha256:0ae235900b46b871393ff6950ea13d4ded7c42b56580b36e0fc202e63f999995", size = 7425, upload-time = "2026-09-23T22:28:40.169Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/31/3daf2330dc9d3235155e6b74d7004f02bca3b65510a1f478a0767afc14dc/graphrag_chunking-3.3.0.tar.gz", hash = "sha256:56d3fcfc4cbdfbb8caf86d03c3f2d6365a316fdf125137f3e0c4b9b35f4774ca", size = 7425, upload-time = "2026-10-08T18:27:48.467Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ee/73/cb26541855541cc2be21f6f1cab110b37e9877ffec98516bc23134382d4e/graphrag_chunking-3.2.0-py3-none-any.whl", hash = "sha256:f8b886dfbef57fa6434bd626fdd5ec2f773a9887db31f81b174cbd46bbc14a25", size = 10004, upload-time = "2026-09-23T22:28:39.376Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/c0/309083a2338128a851b30611fde23b10a632a51712f011a7353765937307/graphrag_chunking-3.3.0-py3-none-any.whl", hash = "sha256:981f25c00c0815ddf64ae1dec86102e871ae7357a81de9f450467ccadd74f7f5", size = 10003, upload-time = "2026-10-08T18:27:47.544Z" },
 ]
 
 [[package]]
 name = "graphrag-common"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "toml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5f/47/481753d7d3352bb2dd5486105fde0b8dc42859bbdf7b67224acc27373da1/graphrag_common-3.2.0.tar.gz", hash = "sha256:82da738dc86a26f4457a0f67a89828fdcd5234e901362f81db101b733ab38243", size = 9310, upload-time = "2026-09-23T22:28:36.456Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/d0/6882cdf079a7acb6e53073510225898c12692dc42bc131d11a90c5ac6aa5/graphrag_common-3.3.0.tar.gz", hash = "sha256:e2df8bf2907063b0e7558ebef5b829a97358d015e0d52dce441bda37bf6b2bee", size = 9311, upload-time = "2026-10-08T18:27:50.505Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/cc/cf514d6092e020285a9c03d659a84e2af80d8156bc9d51ee16fd40327f20/graphrag_common-3.2.0-py3-none-any.whl", hash = "sha256:9602c1804bbaf7bbe45363c757fab017d7eb07f9c1257ef0514eec7eb003bab2", size = 9166, upload-time = "2026-09-23T22:28:35.568Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/72/a55ba13ef5db59d81aff5119c7fa4fba5c3d41d46b43b9d6af1a5486e6e9/graphrag_common-3.3.0-py3-none-any.whl", hash = "sha256:0d584370929959164f5058a5fb60ea80def6a25d72c8d4a8d61a6c28a2070683", size = 9165, upload-time = "2026-10-08T18:27:49.301Z" },
 ]
 
 [[package]]
@@ -1008,7 +1008,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "graphrag", specifier = "==3.2.0" },
+    { name = "graphrag", specifier = "==3.3.0" },
     { name = "lightrag-hku", specifier = "==1.5.7" },
     { name = "neo4j", specifier = "==6.4.0" },
     { name = "nest-asyncio", specifier = "==1.6.0" },
@@ -1025,7 +1025,7 @@ requires-dist = [
 
 [[package]]
 name = "graphrag-input"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphrag-common" },
@@ -1034,14 +1034,14 @@ dependencies = [
     { name = "pyarrow" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/9a/2812894b3aacff90a18d328c0686f8130d8ea7ff38766dc95740b3f4d5f2/graphrag_input-3.2.0.tar.gz", hash = "sha256:51c37438aafe919f6c56b71a230a0aa8bb623333fc4062d977bdf695150b78d5", size = 17101, upload-time = "2026-09-23T22:28:44.787Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/e2/33ad0eda592f46589f2199c0fa9d45fea3ce52076ddfef34c893b2a69d17/graphrag_input-3.3.0.tar.gz", hash = "sha256:78ced48f2e0698a2508ac9d6a1e9a49173d25dfc01ca2a098dc11f42ac83d01c", size = 17103, upload-time = "2026-10-08T18:27:52.348Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/81/bc9d44e07591b66636d19d2691d452a2ae20a9f8de01ae4899fa9b0313ce/graphrag_input-3.2.0-py3-none-any.whl", hash = "sha256:1aa1815f8597e9383214e6990017595b794f85456d776c0e8d261de672c007cf", size = 15089, upload-time = "2026-09-23T22:28:43.708Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/03/fe08f3a5fcb17f99af6580bfca1285e51d7c13d6c8dc26d85968435b7c2e/graphrag_input-3.3.0-py3-none-any.whl", hash = "sha256:92ceb0029ba2aeb12e4ac1897d58edda6371296f3fcb625541e8e6b92242c956", size = 15088, upload-time = "2026-10-08T18:27:51.262Z" },
 ]
 
 [[package]]
 name = "graphrag-llm"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-identity" },
@@ -1055,14 +1055,14 @@ dependencies = [
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2f/72/ba5baee0a6445229991b6fc850d98d626ee256c4c484537b1ffa2d3251e4/graphrag_llm-3.2.0.tar.gz", hash = "sha256:e2ee5a98a7bd751c9bb986c297fecc39a37f99d60dcc02f197a888b48efbacd2", size = 60526, upload-time = "2026-09-23T22:28:47.791Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/0b/2becdb7c127af5e3daac342759c435ce3103bce4dc87e855d22ca2598d25/graphrag_llm-3.3.0.tar.gz", hash = "sha256:1bf1613f02a09fed197e23670ab2d05156f289d420a799eeeb1635efbba1e588", size = 60527, upload-time = "2026-10-08T18:27:54.274Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/57/30c9f1de504d09b50179d370cc1aa3faad4555042176f4a4f0678e630f83/graphrag_llm-3.2.0-py3-none-any.whl", hash = "sha256:9ebb66a46896b4ce08fb0e591505fc40579893dbffc5b2a668177d24482a46cd", size = 84410, upload-time = "2026-09-23T22:28:46.621Z" },
+    { url = "https://files.pythonhosted.org/packages/57/a7/41a99b6ebe78b78db6bb99ef2216b7eb0ecbe4767a21a651f8d3301ea5e3/graphrag_llm-3.3.0-py3-none-any.whl", hash = "sha256:72bcd0bf5d1326659bd6bb5f42fb5046e6ced0c6551d231e6d8127498cd1bf63", size = 84408, upload-time = "2026-10-08T18:27:53.184Z" },
 ]
 
 [[package]]
 name = "graphrag-storage"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -1073,14 +1073,14 @@ dependencies = [
     { name = "pandas" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/8c/16a634f02814c47cf64e3761bbebba609c4d9b11d459e36de9e97bbb4998/graphrag_storage-3.2.0.tar.gz", hash = "sha256:0f749d6554248bcd05e929cb44bc5793b3e4a16fa12f90a9ff3f829f0b451961", size = 30845, upload-time = "2026-09-23T22:28:38.471Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2e/fa/9d15e4eeda8d9249c2554662484f5651a89877339d674ac549cc4ddf3f79/graphrag_storage-3.3.0.tar.gz", hash = "sha256:d8940668e0c7ada7ab9b85b76721caf278bc2ab30f85482fdc76e257c9f1fa82", size = 30845, upload-time = "2026-10-08T18:27:56.344Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/89/846efbda5da96ada5ec4090a3b3c2150ac19a14d43863dba277e4f874560/graphrag_storage-3.2.0-py3-none-any.whl", hash = "sha256:be6a28c94a9ba096a5f02da4898acd53dedb894ba7f9734e296159bcda611de9", size = 35872, upload-time = "2026-09-23T22:28:37.395Z" },
+    { url = "https://files.pythonhosted.org/packages/80/d7/38f866bca6cb408d3a4cf2c1d6b2f1fb9ab86ec53f17ec43d5dd1da66057/graphrag_storage-3.3.0-py3-none-any.whl", hash = "sha256:adc62283bf9ce9189bd143dac70744c37016125aa9a01d6d9ffe8e3abb47ab63", size = 35872, upload-time = "2026-10-08T18:27:55.312Z" },
 ]
 
 [[package]]
 name = "graphrag-vectors"
-version = "3.2.0"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-core" },
@@ -1093,9 +1093,9 @@ dependencies = [
     { name = "pyarrow" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/36/99/9e1ea805c338fc5f9c36afe85db1a2c59620460bb2c6a4b3e53f0a0e8ccd/graphrag_vectors-3.2.0.tar.gz", hash = "sha256:d6dc642633688d15972b56208e6f260511e580add582f04165c83de41c189b80", size = 930373, upload-time = "2026-09-23T22:28:42.425Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/5f/1edd1abbf0e9224b2405cc5d97da6dba32ed9086b1e24670489101cef076/graphrag_vectors-3.3.0.tar.gz", hash = "sha256:ca2c455f51567fb8c565236cd93827e7fd65c35f02c17ad58fffbafda9bfaaec", size = 930371, upload-time = "2026-10-08T18:27:58.553Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/d7/02172968eccc209fd3579cfe7f07c775bff8ed2fb1fc1a4d0978955ce1b7/graphrag_vectors-3.2.0-py3-none-any.whl", hash = "sha256:9626e9275aff2357e4ef0326d4368601decc8b2fcda7b0742fa402c781bed052", size = 23897, upload-time = "2026-09-23T22:28:41.17Z" },
+    { url = "https://files.pythonhosted.org/packages/28/24/bab8870596514d674de230a94ff9f3302bb60add97b13d22d3e68ae6f77d/graphrag_vectors-3.3.0-py3-none-any.whl", hash = "sha256:271519b4cb0b80382d8ccfb6441329fe2f056aa6ee29f10078bc00389219dcfd", size = 23897, upload-time = "2026-10-08T18:27:57.089Z" },
 ]
 
 [[package]]
@@ -1175,8 +1175,8 @@ name = "httpcore2"
 version = "2.13.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11" },
-    { name = "truststore" },
+    { name = "h11", marker = "sys_platform != 'emscripten'" },
+    { name = "truststore", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cb/f3/1db7aa2bc2524062192bb0e0323969492d1883152a232fe36eea65f4e35c/httpcore2-2.13.1.tar.gz", hash = "sha256:e0aa977abe17e69a3b820a24542a6fa88702676d83880b8d194dcd18408e5103", size = 68071, upload-time = "2026-09-23T07:47:22.372Z" }
 wheels = [
@@ -2276,7 +2276,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -2819,7 +2819,7 @@ wheels = [
 
 [package.optional-dependencies]
 accel = [
-    { name = "rl-accel" },
+    { name = "rl-accel", marker = "(platform_machine != 'ARM64' and platform_machine != 'aarch64' and platform_machine != 'arm64') or sys_platform != 'win32'" },
 ]
 
 [[package]]
@@ -3206,7 +3206,7 @@ name = "sympy"
 version = "1.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "mpmath" },
+    { name = "mpmath", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/83/d3/803453b36afefb7c2bb238361cd4ae6125a569b4db67cd9e79846ba2d68c/sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517", size = 7793921, upload-time = "2025-04-27T18:05:01.611Z" }
 wheels = [
@@ -3345,13 +3345,13 @@ name = "torch"
 version = "2.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "filelock" },
-    { name = "fsspec" },
-    { name = "jinja2" },
-    { name = "networkx" },
-    { name = "setuptools" },
-    { name = "sympy" },
-    { name = "typing-extensions" },
+    { name = "filelock", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "fsspec", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "jinja2", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "networkx", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "setuptools", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "sympy", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "typing-extensions", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4b/3c/379349820e9a6e713826de3d0b88f07728541bdcabe2a3afd128871cdc4b/torch-2.14.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:420dbf314c180ee4b86e9bc00aee5746a7d6e5bacdd7df925af671ed393f0b2e", size = 127307099, upload-time = "2026-09-30T17:44:10.421Z" },
@@ -3362,9 +3362,9 @@ name = "torchvision"
 version = "0.29.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
-    { name = "pillow" },
-    { name = "torch" },
+    { name = "numpy", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "pillow", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "torch", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/f8/855c7b326ed17a8dac4a03e8e6fec33ef6728e4baa00d816cf1227bb6681/torchvision-0.29.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:3b6eb9d2f8fe9b93d9d37637749df361efeed133d96ddd503184a1b5b12bb27f", size = 1813847, upload-time = "2026-09-30T17:57:01.009Z" },
@@ -3396,15 +3396,15 @@ name = "transformers"
 version = "5.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "huggingface-hub" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pyyaml" },
-    { name = "regex" },
-    { name = "safetensors" },
-    { name = "tokenizers" },
-    { name = "tqdm" },
-    { name = "typer" },
+    { name = "huggingface-hub", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "numpy", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "packaging", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "pyyaml", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "regex", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "safetensors", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "tokenizers", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "tqdm", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "typer", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/65/4c/70012ed0795235fb6bd7806fafd4a1842f03e49ebbfa3bb9580e451948ce/transformers-5.19.0.tar.gz", hash = "sha256:87f38dd25e4521151b97e94520ac457f44a0ae8a8358a5b112daff6c64a822d6", size = 10032022, upload-time = "2026-10-06T16:39:00.229Z" }
 wheels = [
