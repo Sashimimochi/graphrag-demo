@@ -14,7 +14,7 @@ dependencies = [
     "pandas==3.0.6",
     "pillow==12.3.0",
     "pyvis==0.3.2",
-    "python-dotenv==1.2.2",
+    "python-dotenv==1.2.4",
     "raganything==1.2.10",
     "streamlit==1.56.0",
     "yfiles-jupyter-graphs==2.0.0",
