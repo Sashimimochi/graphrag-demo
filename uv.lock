@@ -1062,7 +1062,7 @@ requires-dist = [
     { name = "pyvis", specifier = "==0.3.2" },
     { name = "raganything", specifier = "==1.2.10" },
     { name = "streamlit", specifier = "==1.56.0" },
-    { name = "yfiles-jupyter-graphs", specifier = "==1.10.11" },
+    { name = "yfiles-jupyter-graphs", specifier = "==2.0.0" },
 ]
 
 [[package]]
@@ -3733,14 +3733,14 @@ wheels = [
 
 [[package]]
 name = "yfiles-jupyter-graphs"
-version = "1.10.11"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ipywidgets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/49/60e1cc22ef2c745e96dc9e32a3fb7eaebca801f1bd9b1f7bbe60b945b795/yfiles_jupyter_graphs-1.10.11.tar.gz", hash = "sha256:ebf37d2fc55605751acac135f9329e110079bdd9639d059cdaa7c07ab08a8f71", size = 10755412, upload-time = "2026-03-16T16:33:14.244Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/a3/3184b145ed84a107b4adb99673c4a864177244a15bb334b3f247c573f52c/yfiles_jupyter_graphs-2.0.0.tar.gz", hash = "sha256:94b845c41060169b5c9e6a7eee8735610bfce17aa09e36bf25dd1f366df19f7f", size = 13004498, upload-time = "2026-08-10T08:13:44.804Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/21/60/a07f10b29adfc0879e8532fb048c7d4dd3a6873f7dd80cf55cc107bd4ce2/yfiles_jupyter_graphs-1.10.11-py3-none-any.whl", hash = "sha256:d70a35e6e71b110b8517ebbe7b4de47b01e397b33bc60c8f3c16180024754b0e", size = 15806857, upload-time = "2026-03-16T16:33:07.88Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/c4/583f94de7024d2a092491d0eadcd5cecf4db7f3aa4076428d65a00ad0ce1/yfiles_jupyter_graphs-2.0.0-py3-none-any.whl", hash = "sha256:dd49b25e267d2ea212a597a0f9042a4829e72a6d5b02e27bbe22054847daf63b", size = 16345642, upload-time = "2026-08-10T08:13:39.208Z" },
 ]
 
 [[package]]
