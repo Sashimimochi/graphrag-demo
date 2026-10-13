@@ -5,7 +5,7 @@ description = "A Streamlit demo for GraphRAG and LightRAG."
 # Python dependencies are locked in uv.lock.
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "graphrag==3.2.0",
+    "graphrag==3.3.0",
     "lightrag-hku==1.5.7",
     "nest-asyncio==1.6.0",
     "networkx==3.7",
