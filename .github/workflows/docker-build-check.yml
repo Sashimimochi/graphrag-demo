@@ -10,6 +10,8 @@ on:
       - "uv.lock"
       - "docker-compose.yml"
       - ".github/workflows/docker-build-check.yml"
+      - ".github/workflows/sync-uv-lockfile.yml"
+  workflow_dispatch:
 
 jobs:
   lockfile-check:
