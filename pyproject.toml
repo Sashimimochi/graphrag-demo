@@ -16,7 +16,7 @@ dependencies = [
     "pyvis==0.3.2",
     "python-dotenv==1.2.4",
     "raganything==1.2.10",
-    "streamlit==1.65.0",
+    "streamlit==1.66.0",
     "yfiles-jupyter-graphs==2.0.0",
 ]
 
