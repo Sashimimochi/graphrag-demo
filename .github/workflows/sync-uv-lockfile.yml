@@ -1,0 +1,76 @@
+name: Sync uv Lockfile
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/sync-uv-lockfile.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sync-uv-lockfile-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # Do not attempt to push to forks; their tokens are read-only by design.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.12.19"
+          enable-cache: true
+
+      - name: Regenerate lockfile
+        run: uv lock --python 3.12
+
+      - name: Commit updated lockfile
+        id: commit
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if git diff --quiet -- uv.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "uv.lock is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git commit -m "chore: sync uv lockfile"
+          git push origin "HEAD:${PR_BRANCH}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN pushes do not trigger pull_request workflows. Dispatch the
+      # build workflow explicitly after the lockfile commit so the new head is tested.
+      - name: Run Docker build check for updated branch
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh workflow run .github/workflows/docker-build-check.yml --repo "$REPOSITORY" --ref "$PR_BRANCH"
