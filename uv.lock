@@ -600,49 +600,44 @@ wheels = [
 
 [[package]]
 name = "docvortex"
-version = "0.5.16"
+version = "0.6.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "click" },
-    { name = "filelock" },
     { name = "fonttools" },
     { name = "ftfy" },
     { name = "latex2mathml" },
     { name = "loguru" },
     { name = "lxml" },
-    { name = "magika" },
     { name = "mammoth" },
     { name = "mathml2omml" },
     { name = "metafile-render" },
+    { name = "mineru-magika" },
     { name = "nh3" },
     { name = "numpy" },
     { name = "olefile" },
-    { name = "onnxruntime" },
+    { name = "onnxruntime", marker = "(platform_machine != 'AMD64' and platform_machine != 'amd64' and platform_machine != 'x86_64') or sys_platform != 'win32'" },
+    { name = "onnxruntime-directml", marker = "(platform_machine == 'AMD64' and sys_platform == 'win32') or (platform_machine == 'amd64' and sys_platform == 'win32') or (platform_machine == 'x86_64' and sys_platform == 'win32')" },
     { name = "openpyxl" },
     { name = "pillow" },
-    { name = "pyclipper" },
     { name = "pydantic" },
     { name = "pylatexenc" },
     { name = "pypdf" },
     { name = "pypdfium2" },
     { name = "pypptx-with-oxml" },
     { name = "python-docx" },
-    { name = "pyyaml" },
     { name = "reportlab" },
     { name = "reportlab", extra = ["accel"], marker = "(platform_machine != 'ARM64' and platform_machine != 'aarch64' and platform_machine != 'arm64') or sys_platform != 'win32'" },
     { name = "resvg-py" },
     { name = "ziamath" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/89/a58b54c2de10a487e35be25adf7fdb0b0ca9b2245e79f5b8357419698345/docvortex-0.5.16.tar.gz", hash = "sha256:946f8903b7d197fca5ce52b1760b4a56e0ef2e496ce7b126d0d2ae33eb0dc585", size = 75878152, upload-time = "2026-10-10T20:13:16.976Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/74/2a9bf569e88b271c44988d7c2928c145e8d53b9ae6a12a47f14397f2cb5c/docvortex-0.5.16-cp310-abi3-macosx_10_13_x86_64.whl", hash = "sha256:4e7a3d31e72828f099f637cd04265dac7a76a4b076a2454c39d83753927730b9", size = 5250471, upload-time = "2026-10-10T20:13:02.933Z" },
-    { url = "https://files.pythonhosted.org/packages/6d/df/eaeca13e2577ea435f585b0e0fbabf8681ea22b03318846e8a361a5519f8/docvortex-0.5.16-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:bc1f7ab10aa63b0eeb8c8d005477427f07da78d9e2f95d385da0eb69f44e15d4", size = 5122262, upload-time = "2026-10-10T20:13:05.285Z" },
-    { url = "https://files.pythonhosted.org/packages/69/f5/3f6d2bfa7efc7cc6e9d559f5321d21a2ac2bdc84abba0878ef09cdd242aa/docvortex-0.5.16-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:3f61b76ab9dd71b92fa2b38d4b2b51cf582a9f22b5f24f6792fdce2c047df728", size = 5166768, upload-time = "2026-10-10T20:13:07.172Z" },
-    { url = "https://files.pythonhosted.org/packages/64/8b/1cffb55aa16c243568b31d2f4d0916e94f0155f8e14d68fc74d8f77edb9b/docvortex-0.5.16-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:28780eba1d72627fa1aa60e21c4a378d156d919f676b83988d01106271637ee2", size = 5275476, upload-time = "2026-10-10T20:13:08.926Z" },
-    { url = "https://files.pythonhosted.org/packages/f1/ff/632a66916f7728cb41774a8be9dfb07c6970916bd2bed1c1dea579c6a773/docvortex-0.5.16-cp310-abi3-win_amd64.whl", hash = "sha256:20952ea883e54ee1e800dea08cdb370017f920b4b3d9543db863aa664ae815bb", size = 5160296, upload-time = "2026-10-10T20:13:10.87Z" },
-    { url = "https://files.pythonhosted.org/packages/a6/4d/8ef08d9b922d0302d8b14eb96d5315f8b798d27f5d4c59aacd2b3d09a9e1/docvortex-0.5.16-cp310-abi3-win_arm64.whl", hash = "sha256:2b64f7f162d08d03d9f13ef4b662ae600f0f361fb88ac5a6947298da80946778", size = 5015159, upload-time = "2026-10-10T20:13:12.466Z" },
-    { url = "https://files.pythonhosted.org/packages/cd/53/b2c397888c6ecd30128d0ffeef5dc2198d89adcfefe65ef2aa843b7d8bd3/docvortex-0.5.16-py3-none-any.whl", hash = "sha256:7dd9bd682a7195dc27f66d82df518bf3ca72bba3a07279171f0c6b375186727c", size = 3955502, upload-time = "2026-10-10T20:13:14.15Z" },
+    { url = "https://files.pythonhosted.org/packages/15/b3/7f650c5006fcd4e838a96c096c8d91db84fb52d8ca5f53639f7b451a42ba/docvortex-0.6.5-cp311-abi3-macosx_14_0_arm64.whl", hash = "sha256:9bbc2feb3ef4b29d08d949158a766c4cb036062cecb06057a8175100ffbecd7a", size = 5249424, upload-time = "2026-10-27T12:50:21.646Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/1b/8ecdff0201474e000fc1f5c9c8837a048b8754e39aa7d2d537f1a87b5ac2/docvortex-0.6.5-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:516154cfd60831aaaf8663f9298975bd19df0096579d0f7d036e0e52e8206dc6", size = 5292567, upload-time = "2026-10-27T12:50:23.55Z" },
+    { url = "https://files.pythonhosted.org/packages/67/1e/7657559d82a2001067fb94adc2d7121a91824f25add6212381a5950f3c4f/docvortex-0.6.5-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:bcf95524bfa6e9eaf4990f4e9bc8b69b732e614ca55e21010cecd7aabd50463c", size = 5421707, upload-time = "2026-10-27T12:50:25.081Z" },
+    { url = "https://files.pythonhosted.org/packages/25/e6/0988bb693db166fe738328ecc5c89f6771d4220803e69a47af84305df85d/docvortex-0.6.5-cp311-abi3-win_amd64.whl", hash = "sha256:0ad74c77b318537261c01c32f42e462880c1778b2031fa05c305b8bfda186cf9", size = 5315547, upload-time = "2026-10-27T12:50:27.124Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/bf/cca410dd5d17a5e7690af6ea275538cfe02e420fc0a445e16fc73abb5247/docvortex-0.6.5-cp311-abi3-win_arm64.whl", hash = "sha256:56fcf5af4d274edfc598a76b78006ef0c3407b484d4d485f372317dc6cdb8dec", size = 5143538, upload-time = "2026-10-27T12:50:29.004Z" },
 ]
 
 [[package]]
@@ -713,11 +708,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.32.7"
+version = "4.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0f/59/e19834834cb01a32febfbb0f8a23a9088088f5d45991824ff2bc3b5e8acb/filelock-3.32.7.tar.gz", hash = "sha256:37b8a3d9811b0f9aef7e5ec5c71bb320de52df51e6ca9bcd6f5ad81187660da7", size = 225154, upload-time = "2026-09-16T00:24:20.907Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/98/771d8ca889f220d7d7e352addf500666368f0fd081c6080a83767580c6e4/filelock-4.2.1.tar.gz", hash = "sha256:c4c937ccac2a813cee448e662a56366cfb374c0f8702e75f295c412cc1c5d5a3", size = 650997, upload-time = "2026-10-17T16:48:14.435Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/df/31098c5aeb4d966b553641472bd55fcf5fdfac953549894b8a765ba44e91/filelock-3.32.7-py3-none-any.whl", hash = "sha256:65ff0d0190ea42038b32bda4b77834fb05be2cad4c5b9b01aa4dfb3614536e52", size = 100157, upload-time = "2026-09-16T00:24:19.543Z" },
+    { url = "https://files.pythonhosted.org/packages/28/00/db89d339bc4ecdc8087fa7b8607ba22ffc27bf96286f340c9620bea428b3/filelock-4.2.1-py3-none-any.whl", hash = "sha256:7be2662e9e826b9bba28afc0f843a123280d799a2ea44bb5d35ccec67905ae44", size = 162455, upload-time = "2026-10-17T16:48:12.937Z" },
 ]
 
 [[package]]
@@ -1849,6 +1844,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mineru-magika"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a0/33/0042252dc565c6a34fbb8d88fb9d74fe8256ff86ad62dfb4a01fb41ac1cf/mineru_magika-1.0.3.tar.gz", hash = "sha256:228351299e8a8c3f8523e58a8d4c3726f176be906420a5598bf791929f66860e", size = 2966624, upload-time = "2026-10-17T20:38:01.498Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5e/b6/8edeeeb341087fd3ae3483ba70deb87121f59261ce738786eee5bf312b89/mineru_magika-1.0.3-py3-none-any.whl", hash = "sha256:1b67e05769f48c28d4d5dda0869ece4f4acce769ec7ab6ed169ed34ee5b58343", size = 2972220, upload-time = "2026-10-17T20:37:59.739Z" },
+]
+
+[[package]]
 name = "mineru-vl-utils"
 version = "2.0.7"
 source = { registry = "https://pypi.org/simple" }
@@ -2124,6 +2131,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6c/44/1e9e762b95b7da0a8424913a1ed7c38cdaf88624a3c41ddba24ebac88bc9/onnxruntime-1.31.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:5e129d6c56abd53e659cb70f00a108d6824086470ff99c2e47a82e5786563db3", size = 23760984, upload-time = "2026-10-09T04:18:24.61Z" },
     { url = "https://files.pythonhosted.org/packages/be/ed/b12cea136ccd7b03d924f46b8393faf7ceac21115c0c50e729faa248cf23/onnxruntime-1.31.0-cp312-cp312-win_amd64.whl", hash = "sha256:09d56445c1753e66e0912de69d3f0184016ad9a191dcd6925bf5dd570d2bfbe5", size = 14888841, upload-time = "2026-10-09T04:18:27.62Z" },
     { url = "https://files.pythonhosted.org/packages/02/ad/37bbc51dcb5cd105c5b2fe98f122b23e90171c2719516964edc65bb1d4cc/onnxruntime-1.31.0-cp312-cp312-win_arm64.whl", hash = "sha256:5c54a0eb7b2b4eef3eb9dcfaf82f5ce880db07288dc309574f6657e9da5cc754", size = 14740604, upload-time = "2026-10-09T04:18:30.399Z" },
+]
+
+[[package]]
+name = "onnxruntime-directml"
+version = "1.24.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flatbuffers" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "protobuf" },
+    { name = "sympy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/ea/33814eb0ec96775eda4c1d30b0d86e91d7d2cd0d84c66d3915aef0e06fa3/onnxruntime_directml-1.24.4-cp312-cp312-win_amd64.whl", hash = "sha256:f2ecb68b7b7b259d2ef3112ae760149f9b5a1e7c0fbb73d539da6250a648a614", size = 25111930, upload-time = "2026-03-17T21:47:18.419Z" },
 ]
 
 [[package]]
