@@ -1,8 +1,8 @@
 # GraphRAG Demo
 
-GraphRAGを試すサンプルコード
+LightRAGを試すサンプルコード
 
-本リポジトリは[lightrag](https://github.com/HKUDS/LightRAG)をベースに実装しています。
+本リポジトリは[LightRAG](https://github.com/HKUDS/LightRAG)をベースに実装しています。知識グラフの階層クラスタリングには[graspologic-native](https://github.com/graspologic-org/graspologic-native)のLeiden実装を使用しています。
 
 ## Settings
 
@@ -138,7 +138,7 @@ It is safe to delete the dump file now: /dumps/neo4j
 ## Jupyterを使って可視化する場合
 
 [yFiles](https://github.com/yWorks/yfiles-jupyter-graphs)を使って可視化したい場合は、Jupyter Labを立ち上げる必要がある。
-コードは[GraphRAG](https://github.com/microsoft/graphrag/blob/v1.0.1/examples_notebooks/community_contrib/yfiles-jupyter-graphs/graph-visualization.ipynb)のサンプルコードを参考にしている。
+階層クラスタリングには`graspologic-native`を使用し、グラフの表示には`yFiles Jupyter Graphs`を使用している。
 
 以下のコマンドを実行して、Jupyter Labを起動する。
 
