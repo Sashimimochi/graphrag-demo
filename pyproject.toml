@@ -1,11 +1,11 @@
 [project]
 name = "graphrag-demo"
 version = "0.1.0"
-description = "A Streamlit demo for GraphRAG and LightRAG."
+description = "A Streamlit demo for LightRAG-based graph RAG."
 # Python dependencies are locked in uv.lock.
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "graphrag==3.3.0",
+    "graspologic-native==1.3.1",
     "lightrag-hku==1.5.7",
     "nest-asyncio==1.6.0",
     "networkx==3.7",
@@ -23,6 +23,3 @@ dependencies = [
 [tool.uv]
 # This repository is an application run from its source tree, not an installable package.
 package = false
-# GraphRAG 3.3.0 restricts NLTK to the 3.9.x series; override that transitive constraint
-# so the project can use the patched 3.10.x line.
-override-dependencies = ["nltk>=3.10.3"]
