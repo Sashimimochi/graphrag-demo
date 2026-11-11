@@ -11,6 +11,11 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 
+# Exercise the replacement Leiden adapter during the image build.
+COPY utils/graph_visualize.py /tmp/graph_visualize.py
+COPY tests/test_graph_visualize.py /tmp/test_graph_visualize.py
+RUN cd /tmp && /opt/venv/bin/python -m unittest -v test_graph_visualize
+
 # --- Runtime stage ---
 FROM python:3.12-slim-trixie
 
