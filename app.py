@@ -91,7 +91,7 @@ async def main():
     initialize_session_state()
 
     st.title("GraphRAG Demo")
-    st.write("GraphRAGの威力を体感できるデモアプリです。")
+    st.write("LightRAGを使ったグラフベースRAGの動作を体感できるデモアプリです。")
 
     DATASET = select_dataset()
     st.session_state.working_dir = DATASET

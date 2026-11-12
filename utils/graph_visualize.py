@@ -3,7 +3,7 @@ import os
 import networkx as nx
 import pandas as pd
 from pyvis.network import Network
-from graphrag.index.operations.cluster_graph import cluster_graph
+import graspologic_native as gcn
 
 
 def create_simple_html(dataset):
@@ -22,6 +22,87 @@ def create_simple_html(dataset):
 
 from yfiles_jupyter_graphs import GraphWidget
 import streamlit as st
+
+
+def cluster_graph(graph, strategy):
+    """Return GraphRAG-compatible hierarchical Leiden communities.
+
+    GraphRAG 3.x delegates this operation to graspologic-native. Calling that
+    implementation directly keeps the previous hierarchy and max-cluster-size
+    behavior without depending on the GraphRAG package and its unrelated stack.
+    """
+    if graph.number_of_nodes() == 0:
+        return []
+
+    if strategy.get("type", "leiden") != "leiden":
+        raise ValueError(f"Unsupported clustering strategy: {strategy['type']}")
+
+    max_cluster_size = int(strategy.get("max_cluster_size", 10))
+    if max_cluster_size < 1:
+        raise ValueError("max_cluster_size must be a positive integer")
+
+    # Match GraphRAG's undirected edge-list representation. Normalizing each
+    # pair and sorting the final list keeps results stable across runs.
+    edges_by_pair = {}
+    for source, target, attributes in graph.edges(data=True):
+        source, target = sorted((str(source), str(target)))
+        weight = attributes.get("weight", 1.0)
+        edges_by_pair[(source, target)] = (
+            source,
+            target,
+            float(weight) if weight is not None else 1.0,
+        )
+    edges = sorted(edges_by_pair.values())
+
+    if not edges:
+        return []
+
+    if strategy.get("use_lcc", True):
+        component_graph = nx.Graph()
+        component_graph.add_edges_from((source, target) for source, target, _ in edges)
+        largest_component = max(
+            nx.connected_components(component_graph),
+            key=lambda nodes: (len(nodes), tuple(sorted(nodes))),
+        )
+        edges = [
+            edge for edge in edges
+            if edge[0] in largest_component and edge[1] in largest_component
+        ]
+
+    if not edges:
+        return []
+
+    partitions = gcn.hierarchical_leiden(
+        edges=edges,
+        starting_communities=None,
+        resolution=1.0,
+        randomness=0.001,
+        iterations=1,
+        use_modularity=True,
+        max_cluster_size=max_cluster_size,
+        seed=strategy.get("seed", 0xDEADBEEF),
+    )
+
+    selected_levels = strategy.get("levels")
+    communities = {}
+    parents = {}
+    for partition in partitions:
+        if selected_levels is not None and partition.level not in selected_levels:
+            continue
+        key = (partition.level, partition.cluster)
+        communities.setdefault(key, []).append(partition.node)
+        parents[partition.cluster] = (
+            partition.parent_cluster
+            if partition.parent_cluster is not None
+            else -1
+        )
+
+    # Preserve the tuple shape consumed by the existing Streamlit view and
+    # notebook: (level, community, parent, member node IDs).
+    return [
+        (level, community, parents[community], members)
+        for (level, community), members in communities.items()
+    ]
 
 def show_hierarchy_graph(dataset):
   # クラスタリングの設定
