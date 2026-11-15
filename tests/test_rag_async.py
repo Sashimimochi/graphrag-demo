@@ -54,6 +54,39 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.shape, (2, 768))
         np.testing.assert_allclose(np.linalg.norm(result, axis=1), [1.0, 1.0])
 
+    async def test_gemini_embedding_truncates_inputs_to_light_rag_limit(self):
+        class FakeAsyncClient:
+            def __init__(self):
+                self.models = SimpleNamespace(
+                    embed_content=AsyncMock(return_value=SimpleNamespace(
+                        embeddings=[SimpleNamespace(values=[1.0] * 768)]
+                    ))
+                )
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, traceback):
+                return None
+
+        embedding = EmbeddingFunc(
+            embedding_dim=768,
+            max_token_size=5,
+            send_dimensions=True,
+            func=rag_module.embedding_func,
+        )
+        async_client = FakeAsyncClient()
+        fake_client = SimpleNamespace(aio=async_client)
+
+        with patch.object(rag_module.genai, "Client", return_value=fake_client):
+            result = await embedding(["word " * 50])
+
+        sent_text = async_client.models.embed_content.await_args.kwargs["contents"][0]
+        self.assertLessEqual(
+            len(rag_module.EMBEDDING_TOKENIZER.encode(sent_text, disallowed_special=())),
+            5,
+        )
+        self.assertEqual(result.shape, (1, 768))
     async def test_make_index_uses_async_insert_and_checks_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(),
