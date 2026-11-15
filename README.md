@@ -18,9 +18,10 @@ NEO4J_PASSWORD = "graphrag" # Auraを使用する場合はインスタンス作�
 NEO4J_BROWSER_URI = "http://localhost:7474" # Auraを使用する場合はNeo4jのコンソール画面 https://console-preview.neo4j.io/tools/query
 ```
 
-このサンプルは Gemini API を使う設定を標準にしています。`.env` では次のモデル設定を使用します。
+このサンプルは Gemini API を使う設定を標準にしています。`.env` では次の値を使用します。
 
 ```conf
+API_KEY = "your_gemini_api_key"
 API_HOST = "https://generativelanguage.googleapis.com/v1beta/openai/"
 LLM_MODEL = "gemini-3.8-flash"
 EMBEDDING_MODEL = "gemini-embedding-001"
@@ -28,7 +29,7 @@ EMBEDDING_DIM = 768
 MAX_TOKENS = 2048
 ```
 
-`gemini-embedding-001` は複数テキストを個別にベクトル化でき、768 次元を指定できます。LightRAG のインデックスと検索では、同じ埋め込みモデル・次元を使う必要があります。
+`API_HOST` は LLM 呼び出しに使用します。埋め込み生成は Google Gen AI SDK から Gemini API を直接呼び出し、文書と検索クエリにそれぞれ `RETRIEVAL_DOCUMENT` / `RETRIEVAL_QUERY` を指定します。`gemini-embedding-001` は複数テキストを個別にベクトル化でき、768 次元への出力にも対応しています。
 
 `text-embedding-004` は 2026 年 1 月 14 日に Gemini API で停止されたため、新規利用できません。既存の `.env` に `EMBEDDING_MODEL=text-embedding-004` や `LLM_MODEL=gemini-1.5-flash` が残っている場合は、上記の値に変更してください。
 
