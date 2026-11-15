@@ -20,8 +20,8 @@ load_dotenv()
 DATA_DIR = "./data"
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("API_HOST", "https://generativelanguage.googleapis.com/v1beta/openai")
-LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-004")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.8-flash")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "gemini-embedding-001")
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", 4096))
 EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", 768))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
@@ -54,12 +54,15 @@ async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwar
     )
 
 # 埋め込み関数の定義
-async def embedding_func(texts: list[str]) -> np.ndarray:
+async def embedding_func(
+    texts: list[str], embedding_dim: int | None = None
+) -> np.ndarray:
     return await openai_embed(
         texts,
         model=EMBEDDING_MODEL,
         api_key=API_KEY,
         base_url=BASE_URL,
+        embedding_dim=embedding_dim or EMBEDDING_DIM,
     )
 
 async def vision_model_func(
@@ -127,6 +130,7 @@ async def initialize_rag():
         embedding_func=EmbeddingFunc(
             embedding_dim=EMBEDDING_DIM,
             max_token_size=MAX_TOKENS,
+            send_dimensions=True,
             func=embedding_func
         ),
         graph_storage=graph_storage,
