@@ -11,7 +11,7 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 
-# Exercise the replacement Leiden adapter during the image build.
+# Exercise graph visualization, asynchronous indexing/search, and Gemini embedding adapters during the image build.
 COPY app.py /tmp/app.py
 COPY utils/graph_visualize.py /tmp/graph_visualize.py
 COPY utils/ /tmp/utils/
