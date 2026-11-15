@@ -166,7 +166,18 @@ async def make_index(filepath):
       st.info(f"インデックスを作成中です。しばらくお待ちください... {input_filepath}")
       with open(input_filepath) as f:
         content = f.read()
-      await lightrag.ainsert(content)
+      track_id = await lightrag.ainsert(content)
+      st.info(f"テキストのインデックス処理が完了しました。処理ID: {track_id}")
+
+      if lightrag.graph_storage == "NetworkXStorage":
+        graph_dir = os.path.join(lightrag.working_dir, lightrag.workspace) if lightrag.workspace else lightrag.working_dir
+        graphml_path = os.path.join(graph_dir, "graph_chunk_entity_relation.graphml")
+        if not os.path.isfile(graphml_path):
+          raise RuntimeError(
+            "LightRAGのテキスト処理は終了しましたが、GraphMLが保存されていません。"
+            f" 保存先: {os.path.abspath(graphml_path)}"
+          )
+
       await rag.process_folder_complete(
         folder_path=DATA_DIR,
         output_dir=st.session_state.working_dir,
