@@ -74,7 +74,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
 
         embedding = EmbeddingFunc(
             embedding_dim=768,
-            max_token_size=5,
+            max_token_size=4096,
             send_dimensions=True,
             func=rag_module.embedding_func,
         )
@@ -85,12 +85,12 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
             patch.object(rag_module, "API_KEY", "test-api-key"),
             patch.object(rag_module.genai, "Client", return_value=fake_client),
         ):
-            result = await embedding(["word " * 50])
+            result = await embedding(["word " * 3000])
 
         sent_text = async_client.models.embed_content.await_args.kwargs["contents"][0]
         self.assertLessEqual(
             len(rag_module.EMBEDDING_TOKENIZER.encode(sent_text, disallowed_special=())),
-            5,
+            2048,
         )
         self.assertEqual(result.shape, (1, 768))
     async def test_make_index_uses_async_insert_and_checks_graphml(self):
