@@ -13,8 +13,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Exercise the replacement Leiden adapter during the image build.
 COPY utils/graph_visualize.py /tmp/graph_visualize.py
+COPY utils/ /tmp/utils/
 COPY tests/test_graph_visualize.py /tmp/test_graph_visualize.py
-RUN cd /tmp && /opt/venv/bin/python -m unittest -v test_graph_visualize
+COPY tests/test_rag_async.py /tmp/test_rag_async.py
+RUN cd /tmp && /opt/venv/bin/python -m unittest -v test_graph_visualize test_rag_async
 
 # --- Runtime stage ---
 FROM python:3.12-slim-trixie
