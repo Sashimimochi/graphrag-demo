@@ -163,7 +163,7 @@ async def make_index(filepath):
       st.info(f"インデックスを作成中です。しばらくお待ちください... {input_filepath}")
       with open(input_filepath) as f:
         content = f.read()
-      lightrag.insert(content)
+      await lightrag.ainsert(content)
       await rag.process_folder_complete(
         folder_path=DATA_DIR,
         output_dir=st.session_state.working_dir,
@@ -197,9 +197,9 @@ async def search(mode, query="この文章を読むとどのような知見が�
         rag_anything = initialize_rag_anything(rag)
 
         if modal == ModalType.TEXT_ONLY:
-            msg = rag.query(query, param=QueryParam(mode=mode))
+            msg = await rag.aquery(query, param=QueryParam(mode=mode))
         elif modal == ModalType.MULTIMODAL:
-            msg_multimodal = rag_anything.query(
+            msg_multimodal = await rag_anything.aquery(
                 query=query,
                 mode=mode,
                 vlm_enhanced=True,
@@ -208,7 +208,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
             if not img_base64:
                 st.error("Please upload an image for Multimodal Input mode.")
                 return "Error: No image provided for Multimodal Input mode."
-            msg = rag_anything.query_with_multimodal(
+            msg = await rag_anything.aquery_with_multimodal(
                 query,
                 multimodal_content=[{
                     "type": "image",
@@ -219,8 +219,8 @@ async def search(mode, query="この文章を読むとどのような知見が�
                 mode=mode,
             )
         elif modal == ModalType.BOTH:
-            msg = rag.query(query, param=QueryParam(mode=mode))
-            msg_multimodal = rag_anything.query(
+            msg = await rag.aquery(query, param=QueryParam(mode=mode))
+            msg_multimodal = await rag_anything.aquery(
                 query=query,
                 mode=mode,
                 vlm_enhanced=True,
