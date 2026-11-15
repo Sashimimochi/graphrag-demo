@@ -97,7 +97,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(),
             text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
             finalize_storages=AsyncMock(),
             workspace="workspace-a",
             graph_storage="NetworkXStorage",
@@ -134,11 +134,11 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         light_rag.finalize_storages.assert_awaited_once()
         finalize_ingress.assert_awaited_once_with(workspace="workspace-a")
 
-    async def test_make_index_rejects_missing_chunk_vectors(self):
+    async def test_make_index_rejects_missing_text_chunks(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(return_value="track-123"),
-            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
+            chunks_vdb=SimpleNamespace(),
             finalize_storages=AsyncMock(),
             workspace="",
             graph_storage="NetworkXStorage",
@@ -160,7 +160,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
             ):
                 await rag_module.make_index("sample")
 
-        self.assertIn("chunks_vdb", show_error.call_args.args[0])
+        self.assertIn("テキストチャンクが保存されていません", show_error.call_args.args[0])
         rag_anything.process_folder_complete.assert_not_awaited()
         light_rag.finalize_storages.assert_awaited_once()
 
@@ -168,7 +168,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(return_value="track-123"),
             text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
             finalize_storages=AsyncMock(),
             workspace="",
             graph_storage="NetworkXStorage",
@@ -196,7 +196,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_text_only_search_surfaces_lightrag_failure_message(self):
         light_rag = SimpleNamespace(
             text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
             aquery_llm=AsyncMock(return_value={
                 "status": "failure",
                 "message": "embedding provider returned 401",
@@ -226,11 +226,14 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
             "Search failed: embedding provider returned 401"
         )
 
-    async def test_search_reports_missing_chunk_vectors_before_naive_query(self):
+    async def test_search_does_not_require_vector_storage_is_empty_method(self):
         light_rag = SimpleNamespace(
             text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
-            aquery_llm=AsyncMock(),
+            chunks_vdb=SimpleNamespace(),
+            aquery_llm=AsyncMock(return_value={
+                "status": "success",
+                "llm_response": {"content": "text result", "is_streaming": False},
+            }),
             finalize_storages=AsyncMock(),
             workspace="test-workspace",
             working_dir="solr",
@@ -249,15 +252,14 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
                 mode="naive", query="test question", modal=ModalType.TEXT_ONLY
             )
 
-        self.assertIn("chunks_vdb", result)
-        self.assertIn("保存されています", result)
-        light_rag.aquery_llm.assert_not_awaited()
-        show_error.assert_called_once()
+        self.assertEqual(result, "text result")
+        light_rag.aquery_llm.assert_awaited_once()
+        show_error.assert_not_called()
 
     async def _run_search(self, modal, img_base64=None):
         light_rag = SimpleNamespace(
             text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
-            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
             aquery_llm=AsyncMock(return_value={
                 "status": "success",
                 "llm_response": {"content": "text result", "is_streaming": False},
