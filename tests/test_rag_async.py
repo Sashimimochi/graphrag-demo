@@ -134,6 +134,36 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         light_rag.finalize_storages.assert_awaited_once()
         finalize_ingress.assert_awaited_once_with(workspace="workspace-a")
 
+    async def test_make_index_rejects_missing_chunk_vectors(self):
+        light_rag = SimpleNamespace(
+            ainsert=AsyncMock(return_value="track-123"),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
+            finalize_storages=AsyncMock(),
+            workspace="",
+            graph_storage="NetworkXStorage",
+            working_dir="solr",
+        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
+
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "sample.txt").write_text("sample document", encoding="utf-8")
+            with (
+                patch.object(rag_module, "DATA_DIR", directory),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir="solr")),
+                patch.object(rag_module.st, "info"),
+                patch.object(rag_module.st, "success"),
+                patch.object(rag_module.st, "error") as show_error,
+                patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            ):
+                await rag_module.make_index("sample")
+
+        self.assertIn("chunks_vdb", show_error.call_args.args[0])
+        rag_anything.process_folder_complete.assert_not_awaited()
+        light_rag.finalize_storages.assert_awaited_once()
+
     async def test_make_index_reports_missing_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(return_value="track-123"),
