@@ -221,6 +221,7 @@ def save_as_html(html_path, graph_json):
             opacity: 0;
             transition: opacity 0.3s;
             max-width: 300px;
+            white-space: pre-line;
         }
         .legend {
             position: absolute;
@@ -306,7 +307,7 @@ def save_as_html(html_path, graph_json):
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tooltip.html(`<strong>${d.id}</strong><br>Entity Type: ${d.entity_type}<br>Description: ${d.description || "N/A"}`)
+            tooltip.text(`${d.id}\nEntity Type: ${d.entity_type}\nDescription: ${d.description || "N/A"}`)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
@@ -318,9 +319,11 @@ def save_as_html(html_path, graph_json):
 
         const legend = d3.select(".legend");
         entityTypes.forEach(type => {
-            legend.append("div")
-                .attr("class", "legend-item")
-                .html(`<span class="legend-color" style="background-color: ${color(type)}"></span>${type}`);
+            const item = legend.append("div").attr("class", "legend-item");
+            item.append("span")
+                .attr("class", "legend-color")
+                .style("background-color", color(type));
+            item.append("span").text(type);
         });
 
         simulation

@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import unittest
@@ -5,8 +6,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import networkx as nx
-
-import json
 
 from graph_visualize import cluster_graph, graphml_to_json, resolve_graphml_path
 
