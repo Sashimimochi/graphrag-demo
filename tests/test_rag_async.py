@@ -9,32 +9,33 @@ from utils import rag as rag_module
 
 
 class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
-    async def test_make_index_uses_light_rag_async_insert(self):
+    async def test_make_index_uses_async_insert_and_checks_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(),
             finalize_storages=AsyncMock(),
-            workspace="",
-            graph_storage="Neo4JStorage",
+            workspace="workspace-a",
+            graph_storage="NetworkXStorage",
         )
-        rag_anything = SimpleNamespace(
-            process_folder_complete=AsyncMock(),
-        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
 
         with tempfile.TemporaryDirectory() as directory:
-            Path(directory, "sample.txt").write_text("sample document", encoding="utf-8")
+            input_dir = Path(directory, "inputs")
+            input_dir.mkdir()
+            Path(input_dir, "sample.txt").write_text("sample document", encoding="utf-8")
+            graph_dir = Path(directory, "workspace-a")
+
+            async def insert_and_write_graph(_content):
+                graph_dir.mkdir()
+                (graph_dir / "graph_chunk_entity_relation.graphml").write_text("<graphml/>", encoding="utf-8")
+                return "track-123"
+
+            light_rag.ainsert.side_effect = insert_and_write_graph
+            light_rag.working_dir = directory
             with (
-                patch.object(rag_module, "DATA_DIR", directory),
-                patch.object(
-                    rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)
-                ),
-                patch.object(
-                    rag_module, "initialize_rag_anything", return_value=rag_anything
-                ),
-                patch.object(
-                    rag_module.st,
-                    "session_state",
-                    SimpleNamespace(working_dir=directory),
-                ),
+                patch.object(rag_module, "DATA_DIR", str(input_dir)),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir=directory)),
                 patch.object(rag_module.st, "info"),
                 patch.object(rag_module.st, "success"),
                 patch.object(rag_module.st, "error"),
@@ -45,7 +46,34 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         light_rag.ainsert.assert_awaited_once_with("sample document")
         rag_anything.process_folder_complete.assert_awaited_once()
         light_rag.finalize_storages.assert_awaited_once()
-        finalize_ingress.assert_awaited_once_with(workspace="")
+        finalize_ingress.assert_awaited_once_with(workspace="workspace-a")
+
+    async def test_make_index_reports_missing_graphml(self):
+        light_rag = SimpleNamespace(
+            ainsert=AsyncMock(return_value="track-123"),
+            finalize_storages=AsyncMock(),
+            workspace="",
+            graph_storage="NetworkXStorage",
+            working_dir="unused",
+        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
+
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "sample.txt").write_text("sample document", encoding="utf-8")
+            with (
+                patch.object(rag_module, "DATA_DIR", directory),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir=directory)),
+                patch.object(rag_module.st, "info"),
+                patch.object(rag_module.st, "success"),
+                patch.object(rag_module.st, "error") as show_error,
+                patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            ):
+                await rag_module.make_index("sample")
+
+        self.assertIn("GraphMLが保存されていません", show_error.call_args.args[0])
+        rag_anything.process_folder_complete.assert_not_awaited()
 
     async def test_text_only_search_surfaces_lightrag_failure_message(self):
         light_rag = SimpleNamespace(
