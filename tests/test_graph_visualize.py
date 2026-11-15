@@ -1,9 +1,40 @@
+import os
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 import networkx as nx
 
-from graph_visualize import cluster_graph
+from graph_visualize import cluster_graph, resolve_graphml_path
 
+
+class ResolveGraphMLPathTests(unittest.TestCase):
+    def test_uses_workspace_subdirectory_when_configured(self):
+        with tempfile.TemporaryDirectory() as directory:
+            graph_dir = Path(directory, "tenant-a")
+            graph_dir.mkdir()
+            graph_file = graph_dir / "graph_chunk_entity_relation.graphml"
+            graph_file.write_text("<graphml/>", encoding="utf-8")
+
+            with patch.dict(os.environ, {"WORKSPACE": "tenant-a"}):
+                self.assertEqual(resolve_graphml_path(directory), str(graph_file))
+
+    def test_falls_back_to_legacy_root_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            graph_file = Path(directory, "graph_chunk_entity_relation.graphml")
+            graph_file.write_text("<graphml/>", encoding="utf-8")
+
+            with patch.dict(os.environ, {"WORKSPACE": "tenant-a"}):
+                self.assertEqual(resolve_graphml_path(directory), str(graph_file))
+
+    def test_uses_root_path_when_workspace_is_empty(self):
+        with tempfile.TemporaryDirectory() as directory:
+            graph_file = Path(directory, "graph_chunk_entity_relation.graphml")
+            graph_file.write_text("<graphml/>", encoding="utf-8")
+
+            with patch.dict(os.environ, {"WORKSPACE": ""}):
+                self.assertEqual(resolve_graphml_path(directory), str(graph_file))
 
 class ClusterGraphTests(unittest.TestCase):
     def setUp(self):
