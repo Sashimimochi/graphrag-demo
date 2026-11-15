@@ -320,7 +320,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
         rag = await initialize_rag()
         rag_anything = initialize_rag_anything(rag)
 
-        if modal == ModalType.TEXT_ONLY:
+        if modal == ModalType.TEXT_ONLY or modal == ModalType.BOTH:
             if mode in {"naive", "mix", "hybrid"}:
                 text_chunks_empty, chunk_vectors_empty = await _chunk_index_state(rag)
                 chunk_error = _chunk_index_error(text_chunks_empty, chunk_vectors_empty)
@@ -331,6 +331,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
                         f"chunks_vdb_empty={chunk_vectors_empty}, "
                         f"working_dir={rag.working_dir}"
                     )
+        if modal == ModalType.TEXT_ONLY:
             msg = await _query_lightrag(rag, query, mode)
         elif modal == ModalType.MULTIMODAL:
             msg_multimodal = await rag_anything.aquery(

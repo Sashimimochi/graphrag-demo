@@ -165,6 +165,8 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_text_only_search_surfaces_lightrag_failure_message(self):
         light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
             aquery_llm=AsyncMock(return_value={
                 "status": "failure",
                 "message": "embedding provider returned 401",
@@ -224,6 +226,8 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
 
     async def _run_search(self, modal, img_base64=None):
         light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
             aquery_llm=AsyncMock(return_value={
                 "status": "success",
                 "llm_response": {"content": "text result", "is_streaming": False},

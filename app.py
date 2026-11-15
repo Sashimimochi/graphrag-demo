@@ -52,12 +52,9 @@ def display_knowledge_graph(graph_storage, filename):
             return
 
         filepath = Path("./visualize") / f"knowledge_graph_{filename}.html"
-        graph_path = Path(graphml_file)
-        if (
-            not filepath.exists()
-            or filepath.stat().st_mtime < graph_path.stat().st_mtime
-        ):
-            visualize_graphml(graphml_file, str(filepath))
+        # Regenerate on every explicit view request so old cached HTML from a
+        # previous visualization implementation cannot remain visible.
+        visualize_graphml(graphml_file, str(filepath))
 
         st.iframe(
             filepath,
