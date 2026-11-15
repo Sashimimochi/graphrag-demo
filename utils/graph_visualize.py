@@ -5,10 +5,33 @@ import pandas as pd
 from pyvis.network import Network
 import graspologic_native as gcn
 
+GRAPHML_FILENAME = "graph_chunk_entity_relation.graphml"
+
+
+def resolve_graphml_path(dataset):
+    """Resolve LightRAG GraphML paths with optional workspace isolation.
+
+    LightRAG stores NetworkX graph files in a workspace subdirectory when
+    the WORKSPACE environment variable is set. The root-level fallback
+    keeps older datasets readable after WORKSPACE is configured.
+    """
+    dataset_path = os.fspath(dataset)
+    if dataset_path.endswith(".graphml"):
+        return dataset_path
+
+    workspace = os.getenv("WORKSPACE", "").strip()
+    candidates = []
+    if workspace:
+        candidates.append(os.path.join(dataset_path, workspace, GRAPHML_FILENAME))
+    candidates.append(os.path.join(dataset_path, GRAPHML_FILENAME))
+
+    return next((path for path in candidates if os.path.isfile(path)), candidates[0])
+
+
 
 def create_simple_html(dataset):
   # Load the GraphML file
-  filepath = f'./{dataset}/graph_chunk_entity_relation.graphml'
+  filepath = resolve_graphml_path(dataset)
   G = nx.read_graphml(filepath)
 
   # Create a Pyvis network
@@ -116,7 +139,7 @@ def show_hierarchy_graph(dataset):
   }
 
   # Load the GraphML file
-  G = nx.read_graphml(f'./{dataset}/graph_chunk_entity_relation.graphml')
+  G = nx.read_graphml(resolve_graphml_path(dataset))
 
   # クラスタリングを実行
   communities = cluster_graph(G, strategy)
@@ -368,7 +391,7 @@ def create_json(json_data):
 
 # main function
 def visualize_graphml(dataset, html_path):
-    graphml_file = f'./{dataset}/graph_chunk_entity_relation.graphml'
+    graphml_file = resolve_graphml_path(dataset)
     json_data = graphml_to_json(graphml_file)
     html_dir = os.path.dirname(html_path)
     if not os.path.exists(html_dir):
