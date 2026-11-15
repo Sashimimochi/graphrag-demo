@@ -4,7 +4,7 @@ import nest_asyncio
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
-from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
+from utils.graph_visualize import resolve_graphml_path, visualize_graphml, show_hierarchy_graph
 from utils.rag import make_index, search
 from utils.common import select_dataset, select_language, select_graph_storage, check_storage, select_search_mode, select_modal, upload_image, ModalType
 
@@ -45,12 +45,20 @@ def display_knowledge_graph(graph_storage, filename):
             </a>
         """, unsafe_allow_html=True)
     else:
+        graphml_file = resolve_graphml_path(filename)
+        if not os.path.isfile(graphml_file):
+            workspace = os.getenv("WORKSPACE", "").strip() or "(未設定)"
+            st.error("GraphMLファイルが見つかりません。インデックス作成が完了しているか、保存先を確認してください。")
+            st.caption(f"確認したパス: {os.path.abspath(graphml_file)}")
+            st.caption(f"WORKSPACE: {workspace}")
+            return
+
         filepath = f"./visualize/knowledge_graph_{filename}.html"
         if not os.path.exists(filepath):
-            visualize_graphml(filename, filepath)
-        with open(filepath, "r") as f:
+            visualize_graphml(graphml_file, filepath)
+        with open(filepath, "r", encoding="utf-8") as f:
             components.html(f.read(), height=500)
-        df = show_hierarchy_graph(filename)
+        df = show_hierarchy_graph(graphml_file)
         st.dataframe(df)
 
 # チャット履歴の初期化
