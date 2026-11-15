@@ -1,7 +1,8 @@
 import os
 import asyncio
+from pathlib import Path
+
 import streamlit as st
-import streamlit.components.v1 as components
 from dotenv import load_dotenv
 from utils.graph_visualize import resolve_graphml_path, visualize_graphml, show_hierarchy_graph
 from utils.rag import make_index, search
@@ -50,13 +51,23 @@ def display_knowledge_graph(graph_storage, filename):
             st.caption(f"WORKSPACE: {workspace}")
             return
 
-        filepath = f"./visualize/knowledge_graph_{filename}.html"
-        if not os.path.exists(filepath):
-            visualize_graphml(graphml_file, filepath)
-        with open(filepath, "r", encoding="utf-8") as f:
-            components.html(f.read(), height=500)
-        df = show_hierarchy_graph(graphml_file)
-        st.dataframe(df)
+        filepath = Path("./visualize") / f"knowledge_graph_{filename}.html"
+        graph_path = Path(graphml_file)
+        if (
+            not filepath.exists()
+            or filepath.stat().st_mtime < graph_path.stat().st_mtime
+        ):
+            visualize_graphml(graphml_file, str(filepath))
+
+        st.iframe(
+            filepath,
+            height=800,
+            width="stretch",
+            alt="Knowledge graph visualization",
+        )
+        with st.expander("クラスタ階層データ", expanded=False):
+            df = show_hierarchy_graph(graphml_file)
+            st.dataframe(df, width="stretch")
 
 # チャット履歴の初期化
 def initialize_chat_history():

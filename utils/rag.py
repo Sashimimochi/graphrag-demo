@@ -206,6 +206,27 @@ def initialize_rag_anything(rag):
     )
     return rag_anything
 
+async def _chunk_index_state(rag):
+    """Return whether the authoritative text chunks and their vector index are empty."""
+    text_chunks_empty = await rag.text_chunks.is_empty()
+    chunk_vectors_empty = await rag.chunks_vdb.is_empty()
+    return text_chunks_empty, chunk_vectors_empty
+
+
+def _chunk_index_error(text_chunks_empty, chunk_vectors_empty):
+    if text_chunks_empty:
+        return (
+            "テキストチャンクが保存されていません。入力ファイルの内容と"
+            "LightRAGのドキュメント処理ログを確認してください。"
+        )
+    if chunk_vectors_empty:
+        return (
+            "テキストチャンクは保存されていますが、検索用ベクトル "
+            "(chunks_vdb) が0件です。チャンクのベクトル化または保存に失敗しています。"
+        )
+    return None
+
+
 # インデックス作成関数の定義
 async def make_index(filepath):
     lightrag = None
@@ -219,6 +240,14 @@ async def make_index(filepath):
       track_id = await lightrag.ainsert(content)
       st.info(f"テキストのインデックス処理が完了しました。処理ID: {track_id}")
 
+      text_chunks_empty, chunk_vectors_empty = await _chunk_index_state(lightrag)
+      chunk_error = _chunk_index_error(text_chunks_empty, chunk_vectors_empty)
+      if chunk_error:
+        raise RuntimeError(
+          f"{chunk_error} (text_chunks_empty={text_chunks_empty}, "
+          f"chunks_vdb_empty={chunk_vectors_empty}, working_dir={lightrag.working_dir})"
+        )
+
       await rag.process_folder_complete(
         folder_path=DATA_DIR,
         output_dir=st.session_state.working_dir,
@@ -226,6 +255,14 @@ async def make_index(filepath):
         recursive=True,
         max_workers=1,
       )
+      text_chunks_empty, chunk_vectors_empty = await _chunk_index_state(lightrag)
+      chunk_error = _chunk_index_error(text_chunks_empty, chunk_vectors_empty)
+      if chunk_error:
+        raise RuntimeError(
+          f"{chunk_error} (text_chunks_empty={text_chunks_empty}, "
+          f"chunks_vdb_empty={chunk_vectors_empty}, working_dir={lightrag.working_dir})"
+        )
+
       if lightrag.graph_storage == "NetworkXStorage":
         graph_dir = os.path.join(lightrag.working_dir, lightrag.workspace) if lightrag.workspace else lightrag.working_dir
         graphml_path = os.path.join(graph_dir, "graph_chunk_entity_relation.graphml")
@@ -284,6 +321,16 @@ async def search(mode, query="この文章を読むとどのような知見が�
         rag_anything = initialize_rag_anything(rag)
 
         if modal == ModalType.TEXT_ONLY:
+            if mode in {"naive", "mix", "hybrid"}:
+                text_chunks_empty, chunk_vectors_empty = await _chunk_index_state(rag)
+                chunk_error = _chunk_index_error(text_chunks_empty, chunk_vectors_empty)
+                if chunk_error:
+                    raise RuntimeError(
+                        f"{chunk_error} 検索前チェック: "
+                        f"text_chunks_empty={text_chunks_empty}, "
+                        f"chunks_vdb_empty={chunk_vectors_empty}, "
+                        f"working_dir={rag.working_dir}"
+                    )
             msg = await _query_lightrag(rag, query, mode)
         elif modal == ModalType.MULTIMODAL:
             msg_multimodal = await rag_anything.aquery(

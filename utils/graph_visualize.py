@@ -156,8 +156,9 @@ def show_hierarchy_graph(dataset):
 # load GraphML file and transfer to JSON
 def graphml_to_json(graphml_file):
     G = nx.read_graphml(graphml_file)
-    data = nx.node_link_data(G)
-    return json.dumps(data)
+    data = nx.node_link_data(G, edges="links")
+    # Prevent graph text such as "</script>" from terminating the inline script.
+    return json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
 
 # create HTML file
 def save_as_html(html_path, graph_json):
@@ -190,7 +191,12 @@ def save_as_html(html_path, graph_json):
             stroke-width: 1.5px;
         }
         .node-label {
-            font-size: 12px;
+            font-size: 14px;
+            fill: #202124;
+            paint-order: stroke;
+            stroke: rgba(255, 255, 255, 0.9);
+            stroke-width: 3px;
+            stroke-linejoin: round;
             pointer-events: none;
         }
         .link-label {
@@ -241,8 +247,7 @@ def save_as_html(html_path, graph_json):
     <div class="tooltip"></div>
     <div class="legend"></div>
     <script>
-        [GRPH DATA];
-        const graphData = graphJson;
+        [GRAPH DATA];
 
         const svg = d3.select("svg"),
             width = window.innerWidth,
@@ -256,8 +261,8 @@ def save_as_html(html_path, graph_json):
         const color = d3.scaleOrdinal(d3.schemeCategory10).domain(entityTypes);
 
         const simulation = d3.forceSimulation(graphData.nodes)
-            .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(150))
-            .force("charge", d3.forceManyBody().strength(-300))
+            .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(110))
+            .force("charge", d3.forceManyBody().strength(-420))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collide", d3.forceCollide().radius(30));
 
@@ -269,7 +274,7 @@ def save_as_html(html_path, graph_json):
             .attr("class", "link");
 
         const link = linkGroup.append("line")
-            .attr("stroke-width", d => Math.sqrt(d.value));
+            .attr("stroke-width", d => Math.max(1, Math.sqrt(Number(d.weight) || 1)));
 
         const linkLabel = linkGroup.append("text")
             .attr("class", "link-label")
@@ -280,7 +285,7 @@ def save_as_html(html_path, graph_json):
             .selectAll("circle")
             .data(graphData.nodes)
             .enter().append("circle")
-            .attr("r", 5)
+            .attr("r", 7)
             .attr("fill", d => color(d.entity_type))
             .call(d3.drag()
                 .on("start", dragstarted)
@@ -379,15 +384,10 @@ def save_as_html(html_path, graph_json):
 </html>
     '''
 
-    html_content = html_content.replace("[GRPH DATA]", graph_json)
+    html_content = html_content.replace("[GRAPH DATA]", graph_json)
 
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-
-def create_json(json_data):
-    json_data = "var graphJson = " + json_data.replace('\\"', '').replace("'", "\\'").replace("\n", "")
-
-    return json_data
 
 # main function
 def visualize_graphml(dataset, html_path):
@@ -397,4 +397,4 @@ def visualize_graphml(dataset, html_path):
     if not os.path.exists(html_dir):
         os.makedirs(html_dir)
 
-    save_as_html(html_path, create_json(json_data))
+    save_as_html(html_path, f"const graphData = {json_data};")

@@ -96,6 +96,8 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_make_index_uses_async_insert_and_checks_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
             finalize_storages=AsyncMock(),
             workspace="workspace-a",
             graph_storage="NetworkXStorage",
@@ -135,6 +137,8 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_make_index_reports_missing_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(return_value="track-123"),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
             finalize_storages=AsyncMock(),
             workspace="",
             graph_storage="NetworkXStorage",
@@ -189,6 +193,34 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         show_error.assert_called_once_with(
             "Search failed: embedding provider returned 401"
         )
+
+    async def test_search_reports_missing_chunk_vectors_before_naive_query(self):
+        light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
+            aquery_llm=AsyncMock(),
+            finalize_storages=AsyncMock(),
+            workspace="test-workspace",
+            working_dir="solr",
+        )
+        with (
+            patch.object(
+                rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)
+            ),
+            patch.object(
+                rag_module, "initialize_rag_anything", return_value=SimpleNamespace()
+            ),
+            patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            patch.object(rag_module.st, "error") as show_error,
+        ):
+            result = await rag_module.search(
+                mode="naive", query="test question", modal=ModalType.TEXT_ONLY
+            )
+
+        self.assertIn("chunks_vdb", result)
+        self.assertIn("保存されています", result)
+        light_rag.aquery_llm.assert_not_awaited()
+        show_error.assert_called_once()
 
     async def _run_search(self, modal, img_base64=None):
         light_rag = SimpleNamespace(
