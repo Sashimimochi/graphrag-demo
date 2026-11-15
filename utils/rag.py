@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import tiktoken
 import streamlit as st
 from dotenv import load_dotenv
 from google import genai
@@ -28,6 +29,7 @@ MAX_TOKENS = int(os.getenv("MAX_TOKENS", 2048))
 EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", 768))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
 MAX_ASYNC = int(os.getenv("MAX_ASYNC", 1))
+EMBEDDING_TOKENIZER = tiktoken.get_encoding("cl100k_base")
 
 setup_logger("lightrag", level="INFO")
 
@@ -59,21 +61,32 @@ async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwar
 async def embedding_func(
     texts: list[str],
     embedding_dim: int | None = None,
+    max_token_size: int | None = None,
     context: str = "document",
 ) -> np.ndarray:
     """Generate one normalized Gemini embedding per input text."""
     dimension = embedding_dim or EMBEDDING_DIM
+    token_limit = max_token_size or MAX_TOKENS
     if not texts:
         return np.empty((0, dimension), dtype=np.float32)
     if not API_KEY:
         raise RuntimeError("Gemini API key is missing. Set API_KEY in .env.")
+
+    # Match LightRAG's existing OpenAI embedding path: use cl100k_base for
+    # unknown model tokenizers and truncate over-limit inputs before the API call.
+    truncated_texts = []
+    for text in texts:
+        tokens = EMBEDDING_TOKENIZER.encode(text, disallowed_special=())
+        if len(tokens) > token_limit:
+            text = EMBEDDING_TOKENIZER.decode(tokens[:token_limit])
+        truncated_texts.append(text)
 
     task_type = "RETRIEVAL_QUERY" if context == "query" else "RETRIEVAL_DOCUMENT"
     client = genai.Client(api_key=API_KEY)
     async with client.aio as async_client:
         response = await async_client.models.embed_content(
             model=EMBEDDING_MODEL,
-            contents=texts,
+            contents=truncated_texts,
             config=types.EmbedContentConfig(
                 task_type=task_type,
                 output_dimensionality=dimension,
@@ -81,15 +94,15 @@ async def embedding_func(
         )
 
     embeddings = response.embeddings or []
-    if len(embeddings) != len(texts):
+    if len(embeddings) != len(truncated_texts):
         raise RuntimeError(
-            f"Gemini returned {len(embeddings)} embeddings for {len(texts)} input texts."
+            f"Gemini returned {len(embeddings)} embeddings for {len(truncated_texts)} input texts."
         )
 
     vectors = np.asarray([item.values for item in embeddings], dtype=np.float32)
-    if vectors.shape != (len(texts), dimension):
+    if vectors.shape != (len(truncated_texts), dimension):
         raise RuntimeError(
-            f"Gemini returned embedding shape {vectors.shape}; expected {(len(texts), dimension)}."
+            f"Gemini returned embedding shape {vectors.shape}; expected {(len(truncated_texts), dimension)}."
         )
 
     # gemini-embedding-001 does not normalize truncated (non-3072) outputs.
