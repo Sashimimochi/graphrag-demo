@@ -40,7 +40,10 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         async_client = FakeAsyncClient()
         fake_client = SimpleNamespace(aio=async_client)
 
-        with patch.object(rag_module.genai, "Client", return_value=fake_client) as create_client:
+        with (
+            patch.object(rag_module, "API_KEY", "test-api-key"),
+            patch.object(rag_module.genai, "Client", return_value=fake_client) as create_client,
+        ):
             result = await embedding(["first chunk", "second chunk"], context="query")
 
         create_client.assert_called_once_with(api_key=rag_module.API_KEY)
@@ -78,7 +81,10 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         async_client = FakeAsyncClient()
         fake_client = SimpleNamespace(aio=async_client)
 
-        with patch.object(rag_module.genai, "Client", return_value=fake_client):
+        with (
+            patch.object(rag_module, "API_KEY", "test-api-key"),
+            patch.object(rag_module.genai, "Client", return_value=fake_client),
+        ):
             result = await embedding(["word " * 50])
 
         sent_text = async_client.models.embed_content.await_args.kwargs["contents"][0]
@@ -151,7 +157,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
                 await rag_module.make_index("sample")
 
         self.assertIn("GraphMLが保存されていません", show_error.call_args.args[0])
-        rag_anything.process_folder_complete.assert_not_awaited()
+        rag_anything.process_folder_complete.assert_awaited_once()
 
     async def test_text_only_search_surfaces_lightrag_failure_message(self):
         light_rag = SimpleNamespace(
