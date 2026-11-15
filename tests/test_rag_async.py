@@ -1,14 +1,41 @@
 import tempfile
 import unittest
+
+import numpy as np
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from utils.common import ModalType
 from utils import rag as rag_module
+from lightrag.utils import EmbeddingFunc
 
 
 class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
+    async def test_gemini_embedding_passes_configured_dimension(self):
+        embedding = EmbeddingFunc(
+            embedding_dim=768,
+            send_dimensions=True,
+            func=rag_module.embedding_func,
+        )
+        vectors = np.ones((2, 768), dtype=np.float32)
+        with (
+            patch.object(rag_module, "EMBEDDING_MODEL", "gemini-embedding-001"),
+            patch.object(rag_module, "EMBEDDING_DIM", 768),
+            patch.object(
+                rag_module, "openai_embed", new=AsyncMock(return_value=vectors)
+            ) as openai_embed,
+        ):
+            result = await embedding(["first chunk", "second chunk"])
+
+        self.assertEqual(result.shape, (2, 768))
+        openai_embed.assert_awaited_once_with(
+            ["first chunk", "second chunk"],
+            model="gemini-embedding-001",
+            api_key=rag_module.API_KEY,
+            base_url=rag_module.BASE_URL,
+            embedding_dim=768,
+        )
     async def test_make_index_uses_async_insert_and_checks_graphml(self):
         light_rag = SimpleNamespace(
             ainsert=AsyncMock(),
