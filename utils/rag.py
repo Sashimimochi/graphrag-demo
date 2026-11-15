@@ -67,6 +67,8 @@ async def embedding_func(
     """Generate one normalized Gemini embedding per input text."""
     dimension = embedding_dim or EMBEDDING_DIM
     token_limit = max_token_size or MAX_TOKENS
+    if EMBEDDING_MODEL == "gemini-embedding-001":
+        token_limit = min(token_limit, 2048)
     if not texts:
         return np.empty((0, dimension), dtype=np.float32)
     if not API_KEY:
