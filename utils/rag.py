@@ -3,7 +3,10 @@ import numpy as np
 import streamlit as st
 from dotenv import load_dotenv
 from lightrag import LightRAG, QueryParam
-from lightrag.kg.shared_storage import initialize_pipeline_status
+from lightrag.kg.shared_storage import (
+    finalize_pipeline_ingress,
+    initialize_pipeline_status,
+)
 from lightrag.llm.openai import openai_embed, openai_complete_if_cache
 from lightrag.utils import EmbeddingFunc, setup_logger
 from utils.common import select_graph_storage
@@ -133,7 +136,7 @@ async def initialize_rag():
         },
     )
     await rag.initialize_storages()
-    await initialize_pipeline_status()
+    await initialize_pipeline_status(workspace=rag.workspace)
     return rag
 
 def initialize_rag_anything(rag):
@@ -176,7 +179,30 @@ async def make_index(filepath):
       st.error(f"インデックスの作成に失敗しました: {e}")
     finally:
       if lightrag:
-        await lightrag.finalize_storages()
+        try:
+          await lightrag.finalize_storages()
+        finally:
+          # This app creates and tears down one LightRAG instance per request.
+          # No sibling instance for this workspace remains, so its loop-bound
+          # single-process ingress can be dropped before asyncio.run() closes.
+          await finalize_pipeline_ingress(workspace=lightrag.workspace)
+
+async def _query_lightrag(rag, query, mode):
+    """Run a non-streaming query and surface LightRAG failure details."""
+    result = await rag.aquery_llm(
+        query,
+        param=QueryParam(mode=mode, stream=False),
+    )
+    if result.get("status") != "success":
+        reason = result.get("message") or "LightRAG query failed without a message"
+        raise RuntimeError(reason)
+
+    response = result.get("llm_response") or {}
+    content = response.get("content")
+    if content is None:
+        raise RuntimeError("LightRAG completed without a text response")
+    return content
+
 
 # 検索関数の定義
 async def search(mode, query="この文章を読むとどのような知見が得られるか簡潔にまとめてください。", modal=ModalType.TEXT_ONLY, img_base64=None):
@@ -197,7 +223,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
         rag_anything = initialize_rag_anything(rag)
 
         if modal == ModalType.TEXT_ONLY:
-            msg = await rag.aquery(query, param=QueryParam(mode=mode))
+            msg = await _query_lightrag(rag, query, mode)
         elif modal == ModalType.MULTIMODAL:
             msg_multimodal = await rag_anything.aquery(
                 query=query,
@@ -219,7 +245,7 @@ async def search(mode, query="この文章を読むとどのような知見が�
                 mode=mode,
             )
         elif modal == ModalType.BOTH:
-            msg = await rag.aquery(query, param=QueryParam(mode=mode))
+            msg = await _query_lightrag(rag, query, mode)
             msg_multimodal = await rag_anything.aquery(
                 query=query,
                 mode=mode,
@@ -244,5 +270,8 @@ async def search(mode, query="この文章を読むとどのような知見が�
         msg = f"Search failed: {e}"
     finally:
         if rag:
-            await rag.finalize_storages()
+            try:
+                await rag.finalize_storages()
+            finally:
+                await finalize_pipeline_ingress(workspace=rag.workspace)
     return msg
