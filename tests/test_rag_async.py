@@ -77,6 +77,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
         show_error.assert_called_once_with(
             "Search failed: embedding provider returned 401"
         )
+
     async def _run_search(self, modal, img_base64=None):
         light_rag = SimpleNamespace(
             aquery_llm=AsyncMock(return_value={
@@ -137,7 +138,7 @@ class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("text result", result)
         self.assertIn("multimodal result", result)
-        light_rag.aquery.assert_awaited_once()
+        light_rag.aquery_llm.assert_awaited_once()
         rag_anything.aquery.assert_awaited_once()
 
 
