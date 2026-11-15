@@ -12,33 +12,47 @@ from lightrag.utils import EmbeddingFunc
 
 
 class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
-    async def test_gemini_embedding_passes_configured_dimension(self):
+    async def test_gemini_embedding_uses_native_batch_api_and_normalizes_vectors(self):
+        class FakeAsyncClient:
+            def __init__(self):
+                self.models = SimpleNamespace(
+                    embed_content=AsyncMock(return_value=SimpleNamespace(
+                        embeddings=[
+                            SimpleNamespace(values=[0.5] * 768),
+                            SimpleNamespace(values=[0.25] * 768),
+                        ]
+                    ))
+                )
+                self.closed = False
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, traceback):
+                self.closed = True
+
         embedding = EmbeddingFunc(
             embedding_dim=768,
             max_token_size=2048,
             send_dimensions=True,
             func=rag_module.embedding_func,
         )
-        vectors = np.ones((2, 768), dtype=np.float32)
-        with (
-            patch.object(rag_module, "EMBEDDING_MODEL", "gemini-embedding-001"),
-            patch.object(rag_module, "EMBEDDING_DIM", 768),
-            patch.object(rag_module, "MAX_TOKENS", 2048),
-            patch.object(
-                rag_module, "openai_embed", new=AsyncMock(return_value=vectors)
-            ) as openai_embed,
-        ):
-            result = await embedding(["first chunk", "second chunk"])
+        async_client = FakeAsyncClient()
+        fake_client = SimpleNamespace(aio=async_client)
 
+        with patch.object(rag_module.genai, "Client", return_value=fake_client) as create_client:
+            result = await embedding(["first chunk", "second chunk"], context="query")
+
+        create_client.assert_called_once_with(api_key=rag_module.API_KEY)
+        self.assertTrue(async_client.closed)
+        async_client.models.embed_content.assert_awaited_once()
+        request = async_client.models.embed_content.await_args.kwargs
+        self.assertEqual(request["model"], "gemini-embedding-001")
+        self.assertEqual(request["contents"], ["first chunk", "second chunk"])
+        self.assertEqual(request["config"].task_type, "RETRIEVAL_QUERY")
+        self.assertEqual(request["config"].output_dimensionality, 768)
         self.assertEqual(result.shape, (2, 768))
-        openai_embed.assert_awaited_once_with(
-            ["first chunk", "second chunk"],
-            model="gemini-embedding-001",
-            api_key=rag_module.API_KEY,
-            base_url=rag_module.BASE_URL,
-            embedding_dim=768,
-            max_token_size=2048,
-        )
+        np.testing.assert_allclose(np.linalg.norm(result, axis=1), [1.0, 1.0])
 
     async def test_make_index_uses_async_insert_and_checks_graphml(self):
         light_rag = SimpleNamespace(
