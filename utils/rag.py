@@ -169,6 +169,13 @@ async def make_index(filepath):
       track_id = await lightrag.ainsert(content)
       st.info(f"テキストのインデックス処理が完了しました。処理ID: {track_id}")
 
+      await rag.process_folder_complete(
+        folder_path=DATA_DIR,
+        output_dir=st.session_state.working_dir,
+        file_extensions=[".jpeg", ".jpg", ".png", ".pdf", ".pptx", ".docx"],
+        recursive=True,
+        max_workers=1,
+      )
       if lightrag.graph_storage == "NetworkXStorage":
         graph_dir = os.path.join(lightrag.working_dir, lightrag.workspace) if lightrag.workspace else lightrag.working_dir
         graphml_path = os.path.join(graph_dir, "graph_chunk_entity_relation.graphml")
@@ -178,13 +185,6 @@ async def make_index(filepath):
             f" 保存先: {os.path.abspath(graphml_path)}"
           )
 
-      await rag.process_folder_complete(
-        folder_path=DATA_DIR,
-        output_dir=st.session_state.working_dir,
-        file_extensions=[".jpeg", ".jpg", ".png", ".pdf", ".pptx", ".docx"],
-        recursive=True,
-        max_workers=1,
-      )
       st.success("インデックスの作成が完了しました。")
     except Exception as e:
       st.error(f"インデックスの作成に失敗しました: {e}")
