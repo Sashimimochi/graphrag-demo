@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv==1.2.4",
     "raganything==1.2.10",
     "streamlit==1.66.1",
+    "tiktoken==0.14.0",
     "yfiles-jupyter-graphs==2.0.0",
 ]
 
