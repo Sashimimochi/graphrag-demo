@@ -2,12 +2,14 @@ import os
 import numpy as np
 import streamlit as st
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from lightrag import LightRAG, QueryParam
 from lightrag.kg.shared_storage import (
     finalize_pipeline_ingress,
     initialize_pipeline_status,
 )
-from lightrag.llm.openai import openai_embed, openai_complete_if_cache
+from lightrag.llm.openai import openai_complete_if_cache
 from lightrag.utils import EmbeddingFunc, setup_logger
 from utils.common import select_graph_storage
 from raganything import RAGAnything, RAGAnythingConfig
@@ -57,16 +59,42 @@ async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwar
 async def embedding_func(
     texts: list[str],
     embedding_dim: int | None = None,
-    max_token_size: int | None = None,
+    context: str = "document",
 ) -> np.ndarray:
-    return await openai_embed(
-        texts,
-        model=EMBEDDING_MODEL,
-        api_key=API_KEY,
-        base_url=BASE_URL,
-        embedding_dim=embedding_dim or EMBEDDING_DIM,
-        max_token_size=max_token_size or MAX_TOKENS,
-    )
+    """Generate one normalized Gemini embedding per input text."""
+    dimension = embedding_dim or EMBEDDING_DIM
+    if not texts:
+        return np.empty((0, dimension), dtype=np.float32)
+    if not API_KEY:
+        raise RuntimeError("Gemini API key is missing. Set API_KEY in .env.")
+
+    task_type = "RETRIEVAL_QUERY" if context == "query" else "RETRIEVAL_DOCUMENT"
+    client = genai.Client(api_key=API_KEY)
+    async with client.aio as async_client:
+        response = await async_client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=texts,
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                output_dimensionality=dimension,
+            ),
+        )
+
+    embeddings = response.embeddings or []
+    if len(embeddings) != len(texts):
+        raise RuntimeError(
+            f"Gemini returned {len(embeddings)} embeddings for {len(texts)} input texts."
+        )
+
+    vectors = np.asarray([item.values for item in embeddings], dtype=np.float32)
+    if vectors.shape != (len(texts), dimension):
+        raise RuntimeError(
+            f"Gemini returned embedding shape {vectors.shape}; expected {(len(texts), dimension)}."
+        )
+
+    # gemini-embedding-001 does not normalize truncated (non-3072) outputs.
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    return vectors / np.maximum(norms, np.finfo(np.float32).eps)
 
 async def vision_model_func(
         prompt, system_prompt=None,
