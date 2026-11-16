@@ -60,6 +60,7 @@ def select_search_mode():
     return st.selectbox(
         "Select Search Mode",
         ["naive", "local", "global", "hybrid", "mix"],
+        index=4,
         key="mode",
         help="- `naive`: 単純な類似検索\n- `local`: 人物相関など特定の関係性について質問をする\n- `global`: 文章全体にまたがる抽象的な質問をする\n- `hybrid`: `local`と`global`の両方を混ぜたもの\n- `mix`: 知識グラフとベクトル検索を組み合わせて検索する"
     )

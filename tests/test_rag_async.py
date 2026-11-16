@@ -1,0 +1,326 @@
+import tempfile
+import unittest
+
+import numpy as np
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
+
+from utils.common import ModalType
+from utils import rag as rag_module
+from lightrag.utils import EmbeddingFunc
+
+
+class AsyncRagApiTests(unittest.IsolatedAsyncioTestCase):
+    async def test_gemini_embedding_uses_native_batch_api_and_normalizes_vectors(self):
+        class FakeAsyncClient:
+            def __init__(self):
+                self.models = SimpleNamespace(
+                    embed_content=AsyncMock(return_value=SimpleNamespace(
+                        embeddings=[
+                            SimpleNamespace(values=[0.5] * 768),
+                            SimpleNamespace(values=[0.25] * 768),
+                        ]
+                    ))
+                )
+                self.closed = False
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, traceback):
+                self.closed = True
+
+        embedding = EmbeddingFunc(
+            embedding_dim=768,
+            max_token_size=2048,
+            send_dimensions=True,
+            func=rag_module.embedding_func,
+        )
+        async_client = FakeAsyncClient()
+        fake_client = SimpleNamespace(aio=async_client)
+
+        with (
+            patch.object(rag_module, "API_KEY", "test-api-key"),
+            patch.object(rag_module.genai, "Client", return_value=fake_client) as create_client,
+        ):
+            result = await embedding(["first chunk", "second chunk"], context="query")
+
+        create_client.assert_called_once_with(api_key=rag_module.API_KEY)
+        self.assertTrue(async_client.closed)
+        async_client.models.embed_content.assert_awaited_once()
+        request = async_client.models.embed_content.await_args.kwargs
+        self.assertEqual(request["model"], "gemini-embedding-001")
+        self.assertEqual(request["contents"], ["first chunk", "second chunk"])
+        self.assertEqual(request["config"].task_type, "RETRIEVAL_QUERY")
+        self.assertEqual(request["config"].output_dimensionality, 768)
+        self.assertEqual(result.shape, (2, 768))
+        np.testing.assert_allclose(np.linalg.norm(result, axis=1), [1.0, 1.0])
+
+    async def test_gemini_embedding_truncates_inputs_to_light_rag_limit(self):
+        class FakeAsyncClient:
+            def __init__(self):
+                self.models = SimpleNamespace(
+                    embed_content=AsyncMock(return_value=SimpleNamespace(
+                        embeddings=[SimpleNamespace(values=[1.0] * 768)]
+                    ))
+                )
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, traceback):
+                return None
+
+        embedding = EmbeddingFunc(
+            embedding_dim=768,
+            max_token_size=4096,
+            send_dimensions=True,
+            func=rag_module.embedding_func,
+        )
+        async_client = FakeAsyncClient()
+        fake_client = SimpleNamespace(aio=async_client)
+
+        with (
+            patch.object(rag_module, "API_KEY", "test-api-key"),
+            patch.object(rag_module.genai, "Client", return_value=fake_client),
+        ):
+            result = await embedding(["word " * 3000])
+
+        sent_text = async_client.models.embed_content.await_args.kwargs["contents"][0]
+        self.assertLessEqual(
+            len(rag_module.EMBEDDING_TOKENIZER.encode(sent_text, disallowed_special=())),
+            2048,
+        )
+        self.assertEqual(result.shape, (1, 768))
+    async def test_make_index_uses_async_insert_and_checks_graphml(self):
+        light_rag = SimpleNamespace(
+            ainsert=AsyncMock(),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
+            finalize_storages=AsyncMock(),
+            workspace="workspace-a",
+            graph_storage="NetworkXStorage",
+        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
+
+        with tempfile.TemporaryDirectory() as directory:
+            input_dir = Path(directory, "inputs")
+            input_dir.mkdir()
+            Path(input_dir, "sample.txt").write_text("sample document", encoding="utf-8")
+            graph_dir = Path(directory, "workspace-a")
+
+            async def insert_and_write_graph(_content):
+                graph_dir.mkdir()
+                (graph_dir / "graph_chunk_entity_relation.graphml").write_text("<graphml/>", encoding="utf-8")
+                return "track-123"
+
+            light_rag.ainsert.side_effect = insert_and_write_graph
+            light_rag.working_dir = directory
+            with (
+                patch.object(rag_module, "DATA_DIR", str(input_dir)),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir=directory)),
+                patch.object(rag_module.st, "info"),
+                patch.object(rag_module.st, "success"),
+                patch.object(rag_module.st, "error"),
+                patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()) as finalize_ingress,
+            ):
+                await rag_module.make_index("sample")
+
+        light_rag.ainsert.assert_awaited_once_with("sample document")
+        rag_anything.process_folder_complete.assert_awaited_once()
+        light_rag.finalize_storages.assert_awaited_once()
+        finalize_ingress.assert_awaited_once_with(workspace="workspace-a")
+
+    async def test_make_index_rejects_missing_text_chunks(self):
+        light_rag = SimpleNamespace(
+            ainsert=AsyncMock(return_value="track-123"),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=True)),
+            chunks_vdb=SimpleNamespace(),
+            finalize_storages=AsyncMock(),
+            workspace="",
+            graph_storage="NetworkXStorage",
+            working_dir="solr",
+        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
+
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "sample.txt").write_text("sample document", encoding="utf-8")
+            with (
+                patch.object(rag_module, "DATA_DIR", directory),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir="solr")),
+                patch.object(rag_module.st, "info"),
+                patch.object(rag_module.st, "success"),
+                patch.object(rag_module.st, "error") as show_error,
+                patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            ):
+                await rag_module.make_index("sample")
+
+        self.assertIn("テキストチャンクが保存されていません", show_error.call_args.args[0])
+        rag_anything.process_folder_complete.assert_not_awaited()
+        light_rag.finalize_storages.assert_awaited_once()
+
+    async def test_make_index_reports_missing_graphml(self):
+        light_rag = SimpleNamespace(
+            ainsert=AsyncMock(return_value="track-123"),
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
+            finalize_storages=AsyncMock(),
+            workspace="",
+            graph_storage="NetworkXStorage",
+            working_dir="unused",
+        )
+        rag_anything = SimpleNamespace(process_folder_complete=AsyncMock())
+
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "sample.txt").write_text("sample document", encoding="utf-8")
+            with (
+                patch.object(rag_module, "DATA_DIR", directory),
+                patch.object(rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)),
+                patch.object(rag_module, "initialize_rag_anything", return_value=rag_anything),
+                patch.object(rag_module.st, "session_state", SimpleNamespace(working_dir=directory)),
+                patch.object(rag_module.st, "info"),
+                patch.object(rag_module.st, "success"),
+                patch.object(rag_module.st, "error") as show_error,
+                patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            ):
+                await rag_module.make_index("sample")
+
+        self.assertIn("GraphMLが保存されていません", show_error.call_args.args[0])
+        rag_anything.process_folder_complete.assert_awaited_once()
+
+    async def test_text_only_search_surfaces_lightrag_failure_message(self):
+        light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
+            aquery_llm=AsyncMock(return_value={
+                "status": "failure",
+                "message": "embedding provider returned 401",
+                "llm_response": {"content": None, "is_streaming": False},
+            }),
+            finalize_storages=AsyncMock(),
+            workspace="test-workspace",
+        )
+        rag_anything = SimpleNamespace()
+
+        with (
+            patch.object(
+                rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)
+            ),
+            patch.object(
+                rag_module, "initialize_rag_anything", return_value=rag_anything
+            ),
+            patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            patch.object(rag_module.st, "error") as show_error,
+        ):
+            result = await rag_module.search(
+                mode="naive", query="test question", modal=ModalType.TEXT_ONLY
+            )
+
+        self.assertIn("embedding provider returned 401", result)
+        show_error.assert_called_once_with(
+            "Search failed: embedding provider returned 401"
+        )
+
+    async def test_search_does_not_require_vector_storage_is_empty_method(self):
+        light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
+            aquery_llm=AsyncMock(return_value={
+                "status": "success",
+                "llm_response": {"content": "text result", "is_streaming": False},
+            }),
+            finalize_storages=AsyncMock(),
+            workspace="test-workspace",
+            working_dir="solr",
+        )
+        with (
+            patch.object(
+                rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)
+            ),
+            patch.object(
+                rag_module, "initialize_rag_anything", return_value=SimpleNamespace()
+            ),
+            patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()),
+            patch.object(rag_module.st, "error") as show_error,
+        ):
+            result = await rag_module.search(
+                mode="naive", query="test question", modal=ModalType.TEXT_ONLY
+            )
+
+        self.assertEqual(result, "text result")
+        light_rag.aquery_llm.assert_awaited_once()
+        show_error.assert_not_called()
+
+    async def _run_search(self, modal, img_base64=None):
+        light_rag = SimpleNamespace(
+            text_chunks=SimpleNamespace(is_empty=AsyncMock(return_value=False)),
+            chunks_vdb=SimpleNamespace(),
+            aquery_llm=AsyncMock(return_value={
+                "status": "success",
+                "llm_response": {"content": "text result", "is_streaming": False},
+            }),
+            finalize_storages=AsyncMock(),
+            workspace="test-workspace",
+        )
+        rag_anything = SimpleNamespace(
+            aquery=AsyncMock(return_value="multimodal result"),
+            aquery_with_multimodal=AsyncMock(return_value="image result"),
+        )
+
+        with (
+            patch.object(
+                rag_module, "initialize_rag", new=AsyncMock(return_value=light_rag)
+            ),
+            patch.object(
+                rag_module, "initialize_rag_anything", return_value=rag_anything
+            ),
+            patch.object(rag_module, "finalize_pipeline_ingress", new=AsyncMock()) as finalize_ingress,
+        ):
+            result = await rag_module.search(
+                mode="hybrid",
+                query="test question",
+                modal=modal,
+                img_base64=img_base64,
+            )
+
+        light_rag.finalize_storages.assert_awaited_once()
+        finalize_ingress.assert_awaited_once_with(workspace="test-workspace")
+        return result, light_rag, rag_anything
+
+    async def test_text_only_search_uses_async_light_rag_query(self):
+        result, light_rag, _ = await self._run_search(ModalType.TEXT_ONLY)
+
+        self.assertEqual(result, "text result")
+        light_rag.aquery_llm.assert_awaited_once()
+
+    async def test_multimodal_search_uses_async_rag_anything_query(self):
+        result, _, rag_anything = await self._run_search(ModalType.MULTIMODAL)
+
+        self.assertEqual(result, "multimodal result")
+        rag_anything.aquery.assert_awaited_once()
+
+    async def test_image_input_uses_async_multimodal_query(self):
+        result, _, rag_anything = await self._run_search(
+            ModalType.MULTIMODAL_INPUT,
+            img_base64="aW1hZ2U=",
+        )
+
+        self.assertEqual(result, "image result")
+        rag_anything.aquery_with_multimodal.assert_awaited_once()
+
+    async def test_both_mode_uses_both_async_query_apis(self):
+        result, light_rag, rag_anything = await self._run_search(ModalType.BOTH)
+
+        self.assertIn("text result", result)
+        self.assertIn("multimodal result", result)
+        light_rag.aquery_llm.assert_awaited_once()
+        rag_anything.aquery.assert_awaited_once()
+
+
+if __name__ == "__main__":
+    unittest.main()

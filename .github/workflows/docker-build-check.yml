@@ -9,6 +9,10 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - "docker-compose.yml"
+      - "app.py"
+      - "utils/**"
+      - "tests/**"
+      - "visualize.ipynb"
       - ".github/workflows/docker-build-check.yml"
       - ".github/workflows/sync-uv-lockfile.yml"
   workflow_dispatch:

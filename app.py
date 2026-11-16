@@ -1,14 +1,12 @@
 import os
 import asyncio
-import nest_asyncio
+from pathlib import Path
+
 import streamlit as st
-import streamlit.components.v1 as components
 from dotenv import load_dotenv
-from utils.graph_visualize import visualize_graphml, show_hierarchy_graph
+from utils.graph_visualize import resolve_graphml_path, visualize_graphml, show_hierarchy_graph
 from utils.rag import make_index, search
 from utils.common import select_dataset, select_language, select_graph_storage, check_storage, select_search_mode, select_modal, upload_image, ModalType
-
-nest_asyncio.apply()
 
 # 環境変数をロード
 load_dotenv()
@@ -45,13 +43,28 @@ def display_knowledge_graph(graph_storage, filename):
             </a>
         """, unsafe_allow_html=True)
     else:
-        filepath = f"./visualize/knowledge_graph_{filename}.html"
-        if not os.path.exists(filepath):
-            visualize_graphml(filename, filepath)
-        with open(filepath, "r") as f:
-            components.html(f.read(), height=500)
-        df = show_hierarchy_graph(filename)
-        st.dataframe(df)
+        graphml_file = resolve_graphml_path(filename)
+        if not os.path.isfile(graphml_file):
+            workspace = os.getenv("WORKSPACE", "").strip() or "(未設定)"
+            st.error("GraphMLファイルが見つかりません。インデックス作成が完了しているか、保存先を確認してください。")
+            st.caption(f"確認したパス: {os.path.abspath(graphml_file)}")
+            st.caption(f"WORKSPACE: {workspace}")
+            return
+
+        filepath = Path("./visualize") / f"knowledge_graph_{filename}.html"
+        # Regenerate on every explicit view request so old cached HTML from a
+        # previous visualization implementation cannot remain visible.
+        visualize_graphml(graphml_file, str(filepath))
+
+        st.iframe(
+            filepath,
+            height=800,
+            width="stretch",
+            alt="Knowledge graph visualization",
+        )
+        with st.expander("クラスタ階層データ", expanded=False):
+            df = show_hierarchy_graph(graphml_file)
+            st.dataframe(df, width="stretch")
 
 # チャット履歴の初期化
 def initialize_chat_history():
@@ -70,7 +83,7 @@ def display_chat_history():
             st.markdown(message["content"])
 
 # ユーザー入力に反応
-def handle_user_input(mode, modal, img_base64=None):
+async def handle_user_input(mode, modal, img_base64=None):
     if prompt := st.chat_input("LLMへの質問内容を入力してください。ex.この文章の主要なテーマはなんですか？", key="query"):
         # ユーザーメッセージの表示
         st.chat_message("user").markdown(prompt)
@@ -80,7 +93,7 @@ def handle_user_input(mode, modal, img_base64=None):
         with st.chat_message("assistant"):
             with st.spinner("Assistant is thinking..."):
                 placeholder = st.empty()
-                msg = asyncio.run(search(mode, query=prompt, modal=modal, img_base64=img_base64))
+                msg = await search(mode, query=prompt, modal=modal, img_base64=img_base64)
                 placeholder.markdown(msg)
                 # アシスタントメッセージをチャット履歴に追加
                 st.session_state.messages.append({"role": "assistant", "content": msg})
@@ -91,7 +104,7 @@ async def main():
     initialize_session_state()
 
     st.title("GraphRAG Demo")
-    st.write("GraphRAGの威力を体感できるデモアプリです。")
+    st.write("LightRAGを使ったグラフベースRAGの動作を体感できるデモアプリです。")
 
     DATASET = select_dataset()
     st.session_state.working_dir = DATASET
@@ -117,7 +130,7 @@ async def main():
     img_base64 = None
     if modal == ModalType.MULTIMODAL_INPUT:
         img_base64 = upload_image()
-    handle_user_input(mode, modal, img_base64)
+    await handle_user_input(mode, modal, img_base64)
 
 # メイン関数の実行
 if __name__ == "__main__":

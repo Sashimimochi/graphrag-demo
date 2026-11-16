@@ -11,6 +11,15 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 
+# Exercise graph visualization, asynchronous indexing/search, and Gemini embedding adapters during the image build.
+COPY app.py /tmp/app.py
+COPY utils/graph_visualize.py /tmp/graph_visualize.py
+COPY utils/ /tmp/utils/
+COPY tests/test_graph_visualize.py /tmp/test_graph_visualize.py
+COPY tests/test_rag_async.py /tmp/test_rag_async.py
+COPY tests/test_app_async.py /tmp/test_app_async.py
+RUN cd /tmp && /opt/venv/bin/python -m unittest -v test_graph_visualize test_rag_async test_app_async
+
 # --- Runtime stage ---
 FROM python:3.12-slim-trixie
 

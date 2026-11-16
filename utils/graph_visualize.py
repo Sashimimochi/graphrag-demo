@@ -3,12 +3,35 @@ import os
 import networkx as nx
 import pandas as pd
 from pyvis.network import Network
-from graphrag.index.operations.cluster_graph import cluster_graph
+import graspologic_native as gcn
+
+GRAPHML_FILENAME = "graph_chunk_entity_relation.graphml"
+
+
+def resolve_graphml_path(dataset):
+    """Resolve LightRAG GraphML paths with optional workspace isolation.
+
+    LightRAG stores NetworkX graph files in a workspace subdirectory when
+    the WORKSPACE environment variable is set. The root-level fallback
+    keeps older datasets readable after WORKSPACE is configured.
+    """
+    dataset_path = os.fspath(dataset)
+    if dataset_path.endswith(".graphml"):
+        return dataset_path
+
+    workspace = os.getenv("WORKSPACE", "").strip()
+    candidates = []
+    if workspace:
+        candidates.append(os.path.join(dataset_path, workspace, GRAPHML_FILENAME))
+    candidates.append(os.path.join(dataset_path, GRAPHML_FILENAME))
+
+    return next((path for path in candidates if os.path.isfile(path)), candidates[0])
+
 
 
 def create_simple_html(dataset):
   # Load the GraphML file
-  filepath = f'./{dataset}/graph_chunk_entity_relation.graphml'
+  filepath = resolve_graphml_path(dataset)
   G = nx.read_graphml(filepath)
 
   # Create a Pyvis network
@@ -23,6 +46,87 @@ def create_simple_html(dataset):
 from yfiles_jupyter_graphs import GraphWidget
 import streamlit as st
 
+
+def cluster_graph(graph, strategy):
+    """Return GraphRAG-compatible hierarchical Leiden communities.
+
+    GraphRAG 3.x delegates this operation to graspologic-native. Calling that
+    implementation directly keeps the previous hierarchy and max-cluster-size
+    behavior without depending on the GraphRAG package and its unrelated stack.
+    """
+    if graph.number_of_nodes() == 0:
+        return []
+
+    if strategy.get("type", "leiden") != "leiden":
+        raise ValueError(f"Unsupported clustering strategy: {strategy['type']}")
+
+    max_cluster_size = int(strategy.get("max_cluster_size", 10))
+    if max_cluster_size < 1:
+        raise ValueError("max_cluster_size must be a positive integer")
+
+    # Match GraphRAG's undirected edge-list representation. Normalizing each
+    # pair and sorting the final list keeps results stable across runs.
+    edges_by_pair = {}
+    for source, target, attributes in graph.edges(data=True):
+        source, target = sorted((str(source), str(target)))
+        weight = attributes.get("weight", 1.0)
+        edges_by_pair[(source, target)] = (
+            source,
+            target,
+            float(weight) if weight is not None else 1.0,
+        )
+    edges = sorted(edges_by_pair.values())
+
+    if not edges:
+        return []
+
+    if strategy.get("use_lcc", True):
+        component_graph = nx.Graph()
+        component_graph.add_edges_from((source, target) for source, target, _ in edges)
+        largest_component = max(
+            nx.connected_components(component_graph),
+            key=lambda nodes: (len(nodes), tuple(sorted(nodes))),
+        )
+        edges = [
+            edge for edge in edges
+            if edge[0] in largest_component and edge[1] in largest_component
+        ]
+
+    if not edges:
+        return []
+
+    partitions = gcn.hierarchical_leiden(
+        edges=edges,
+        starting_communities=None,
+        resolution=1.0,
+        randomness=0.001,
+        iterations=1,
+        use_modularity=True,
+        max_cluster_size=max_cluster_size,
+        seed=strategy.get("seed", 0xDEADBEEF),
+    )
+
+    selected_levels = strategy.get("levels")
+    communities = {}
+    parents = {}
+    for partition in partitions:
+        if selected_levels is not None and partition.level not in selected_levels:
+            continue
+        key = (partition.level, partition.cluster)
+        communities.setdefault(key, []).append(partition.node)
+        parents[partition.cluster] = (
+            partition.parent_cluster
+            if partition.parent_cluster is not None
+            else -1
+        )
+
+    # Preserve the tuple shape consumed by the existing Streamlit view and
+    # notebook: (level, community, parent, member node IDs).
+    return [
+        (level, community, parents[community], members)
+        for (level, community), members in communities.items()
+    ]
+
 def show_hierarchy_graph(dataset):
   # クラスタリングの設定
   strategy = {
@@ -35,7 +139,7 @@ def show_hierarchy_graph(dataset):
   }
 
   # Load the GraphML file
-  G = nx.read_graphml(f'./{dataset}/graph_chunk_entity_relation.graphml')
+  G = nx.read_graphml(resolve_graphml_path(dataset))
 
   # クラスタリングを実行
   communities = cluster_graph(G, strategy)
@@ -52,8 +156,9 @@ def show_hierarchy_graph(dataset):
 # load GraphML file and transfer to JSON
 def graphml_to_json(graphml_file):
     G = nx.read_graphml(graphml_file)
-    data = nx.node_link_data(G)
-    return json.dumps(data)
+    data = nx.node_link_data(G, edges="links")
+    # Prevent graph text such as "</script>" from terminating the inline script.
+    return json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
 
 # create HTML file
 def save_as_html(html_path, graph_json):
@@ -86,7 +191,12 @@ def save_as_html(html_path, graph_json):
             stroke-width: 1.5px;
         }
         .node-label {
-            font-size: 12px;
+            font-size: 14px;
+            fill: #202124;
+            paint-order: stroke;
+            stroke: rgba(255, 255, 255, 0.9);
+            stroke-width: 3px;
+            stroke-linejoin: round;
             pointer-events: none;
         }
         .link-label {
@@ -111,6 +221,7 @@ def save_as_html(html_path, graph_json):
             opacity: 0;
             transition: opacity 0.3s;
             max-width: 300px;
+            white-space: pre-line;
         }
         .legend {
             position: absolute;
@@ -137,8 +248,7 @@ def save_as_html(html_path, graph_json):
     <div class="tooltip"></div>
     <div class="legend"></div>
     <script>
-        [GRPH DATA];
-        const graphData = graphJson;
+        [GRAPH DATA];
 
         const svg = d3.select("svg"),
             width = window.innerWidth,
@@ -152,8 +262,8 @@ def save_as_html(html_path, graph_json):
         const color = d3.scaleOrdinal(d3.schemeCategory10).domain(entityTypes);
 
         const simulation = d3.forceSimulation(graphData.nodes)
-            .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(150))
-            .force("charge", d3.forceManyBody().strength(-300))
+            .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(110))
+            .force("charge", d3.forceManyBody().strength(-420))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collide", d3.forceCollide().radius(30));
 
@@ -165,7 +275,7 @@ def save_as_html(html_path, graph_json):
             .attr("class", "link");
 
         const link = linkGroup.append("line")
-            .attr("stroke-width", d => Math.sqrt(d.value));
+            .attr("stroke-width", d => Math.max(1, Math.sqrt(Number(d.weight) || 1)));
 
         const linkLabel = linkGroup.append("text")
             .attr("class", "link-label")
@@ -176,7 +286,7 @@ def save_as_html(html_path, graph_json):
             .selectAll("circle")
             .data(graphData.nodes)
             .enter().append("circle")
-            .attr("r", 5)
+            .attr("r", 7)
             .attr("fill", d => color(d.entity_type))
             .call(d3.drag()
                 .on("start", dragstarted)
@@ -197,7 +307,7 @@ def save_as_html(html_path, graph_json):
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tooltip.html(`<strong>${d.id}</strong><br>Entity Type: ${d.entity_type}<br>Description: ${d.description || "N/A"}`)
+            tooltip.text(`${d.id}\nEntity Type: ${d.entity_type}\nDescription: ${d.description || "N/A"}`)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
@@ -209,9 +319,11 @@ def save_as_html(html_path, graph_json):
 
         const legend = d3.select(".legend");
         entityTypes.forEach(type => {
-            legend.append("div")
-                .attr("class", "legend-item")
-                .html(`<span class="legend-color" style="background-color: ${color(type)}"></span>${type}`);
+            const item = legend.append("div").attr("class", "legend-item");
+            item.append("span")
+                .attr("class", "legend-color")
+                .style("background-color", color(type));
+            item.append("span").text(type);
         });
 
         simulation
@@ -275,22 +387,17 @@ def save_as_html(html_path, graph_json):
 </html>
     '''
 
-    html_content = html_content.replace("[GRPH DATA]", graph_json)
+    html_content = html_content.replace("[GRAPH DATA]", graph_json)
 
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
 
-def create_json(json_data):
-    json_data = "var graphJson = " + json_data.replace('\\"', '').replace("'", "\\'").replace("\n", "")
-
-    return json_data
-
 # main function
 def visualize_graphml(dataset, html_path):
-    graphml_file = f'./{dataset}/graph_chunk_entity_relation.graphml'
+    graphml_file = resolve_graphml_path(dataset)
     json_data = graphml_to_json(graphml_file)
     html_dir = os.path.dirname(html_path)
     if not os.path.exists(html_dir):
         os.makedirs(html_dir)
 
-    save_as_html(html_path, create_json(json_data))
+    save_as_html(html_path, f"const graphData = {json_data};")

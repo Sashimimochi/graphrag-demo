@@ -1,8 +1,8 @@
 # GraphRAG Demo
 
-GraphRAGを試すサンプルコード
+LightRAGを試すサンプルコード
 
-本リポジトリは[lightrag](https://github.com/HKUDS/LightRAG)をベースに実装しています。
+本リポジトリは[LightRAG](https://github.com/HKUDS/LightRAG)をベースに実装しています。知識グラフの階層クラスタリングには[graspologic-native](https://github.com/graspologic-org/graspologic-native)のLeiden実装を使用しています。
 
 ## Settings
 
@@ -18,33 +18,22 @@ NEO4J_PASSWORD = "graphrag" # Auraを使用する場合はインスタンス作�
 NEO4J_BROWSER_URI = "http://localhost:7474" # Auraを使用する場合はNeo4jのコンソール画面 https://console-preview.neo4j.io/tools/query
 ```
 
-原則、Geminiを使う想定なので、別のAPIを使用する場合は`BASE_URL`などを適宜変更する必要がある。
+このサンプルは Gemini API を使う設定を標準にしています。`.env` では次の値を使用します。
 
-```python
-BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai"
-
-async def llm_model_func(
-    prompt, system_prompt=None, history_messages=[], **kwargs
-) -> str:
-    return await openai_complete_if_cache(
-        "gemini-1.5-flash",
-        prompt,
-        system_prompt=system_prompt,
-        history_messages=history_messages,
-        api_key=API_KEY,
-        base_url=BASE_URL,
-        **kwargs
-    )
-
-async def embedding_func(texts: list[str]) -> np.ndarray:
-    return await openai_embedding(
-        texts,
-        model="text-embedding-004",
-        api_key=API_KEY,
-        base_url=BASE_URL,
-    )
+```conf
+API_KEY = "your_gemini_api_key"
+API_HOST = "https://generativelanguage.googleapis.com/v1beta/openai/"
+LLM_MODEL = "gemini-3.8-flash"
+EMBEDDING_MODEL = "gemini-embedding-001"
+EMBEDDING_DIM = 768
+MAX_TOKENS = 2048
 ```
 
+`API_HOST` は LLM 呼び出しに使用します。埋め込み生成は Google Gen AI SDK から Gemini API を直接呼び出し、文書と検索クエリにそれぞれ `RETRIEVAL_DOCUMENT` / `RETRIEVAL_QUERY` を指定します。`gemini-embedding-001` は複数テキストを個別にベクトル化でき、768 次元への出力にも対応しています。
+
+`text-embedding-004` は 2026 年 1 月 14 日に Gemini API で停止されたため、新規利用できません。既存の `.env` に `EMBEDDING_MODEL=text-embedding-004` や `LLM_MODEL=gemini-1.5-flash` が残っている場合は、上記の値に変更してください。
+
+埋め込みモデルを変更した場合、既存インデックスのベクトルと新しいベクトルは同じ空間ではありません。既存データをそのまま流用せず、新しい作業ディレクトリでインデックスを作り直してください。
 ### データの準備
 
 `data`ディレクトリを作成し、使用するテキストデータを`.txt`形式で配置する。
@@ -138,7 +127,7 @@ It is safe to delete the dump file now: /dumps/neo4j
 ## Jupyterを使って可視化する場合
 
 [yFiles](https://github.com/yWorks/yfiles-jupyter-graphs)を使って可視化したい場合は、Jupyter Labを立ち上げる必要がある。
-コードは[GraphRAG](https://github.com/microsoft/graphrag/blob/v1.0.1/examples_notebooks/community_contrib/yfiles-jupyter-graphs/graph-visualization.ipynb)のサンプルコードを参考にしている。
+階層クラスタリングには`graspologic-native`を使用し、グラフの表示には`yFiles Jupyter Graphs`を使用している。
 
 以下のコマンドを実行して、Jupyter Labを起動する。
 
