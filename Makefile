@@ -26,7 +26,7 @@ check-mineru:
 	docker compose exec app python -c "from raganything import RAGAnything; rag = RAGAnything(); print('✅ MinerU installed properly' if rag.check_parser_installation() else '❌ MinerU installation issue')"
 
 jupyter:
-	docker-compose exec app jupyter lab --allow-root --ip 0.0.0.0
+	docker-compose exec app jupyter lab --allow-root --no-browser --ip 0.0.0.0 --port 8888
 
 server:
 	open http://localhost:9621
